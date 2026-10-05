@@ -1,0 +1,88 @@
+🧭 Alias System Summary
+
+Centralized alias management using a single config file.
+
+Everything lives under the aliasConfig/ folder.
+
+📂 Folder Structure
+
+aliasConfig/pathAliases.config.js → single source of truth (you edit this).
+
+aliasConfig/update-aliases.js → updates package.json and jsconfig.json.
+
+aliasConfig/update-aliases-info.txt → this info file (documentation).
+
+backend/ → contains project source code (utils, models, etc).
+
+jsconfig.json → used by VSCode for IntelliSense and navigation.
+
+package.json → used by Node.js and module-alias for runtime resolution.
+
+⚙️ How It Works
+
+You define aliases in pathAliases.config.js.
+
+Run npm run update:alias to sync aliases.
+
+The script:
+
+Reads from pathAliases.config.js.
+
+Updates _moduleAliases inside package.json.
+
+Updates "paths" inside jsconfig.json.
+
+
+Both files stay in sync with the single config.
+
+📘 Files Updated
+
+package.json
+
+Adds/updates _moduleAliases for runtime imports.
+
+Used by module-alias/register in Node.js.
+
+jsconfig.json
+
+Adds/updates "paths" for VSCode autocomplete and jump-to-definition.
+
+Keeps exclude: ["node_modules"].
+
+🔁 Add or Modify Aliases
+
+Edit aliasConfig/pathAliases.config.js.
+
+Add new entry like:
+
+"@models": "backend/models",
+
+
+Run:
+
+npm run update:alias
+
+
+Done — imports now work with @models/... everywhere.
+
+🧠 Notes
+
+pathAliases.config.js = single source of truth.
+
+Never manually edit _moduleAliases or jsconfig.json.
+
+Restart VSCode after changes for IntelliSense refresh.
+
+Ensure require("module-alias/register") is loaded before imports in server.js.
+
+
+// pathAliases.config.js
+module.exports = {
+  "@utils": "backend/helperUtils",
+  "@dbUtils": "backend/helperUtils/dbUtils",
+  "@models": "backend/models"
+};
+
+// usage
+const { getWithFilters } = require("@dbUtils/queryUtil"); // with exports obj
+const modelA = require("@models/userModel"); //simple export
