@@ -1,0 +1,1891 @@
+[
+  {
+  "_id": {
+    "$oid": "6a02cc1521e6e1e6e6689e20"
+  },
+  "name": "Accessibility & Inclusivity",
+  "scope": "business",
+  "translations": {
+    "en": "Accessibility & Inclusivity",
+    "es": "Accesibilidad e inclusión",
+    "fr": "Accessibilité et inclusivité",
+    "pt": "Acessibilidade e inclusividade",
+    "zh": "无障碍与包容性",
+    "ar": "إمكانية الوصول والشمولية",
+    "ht": "Aksesibilite ak enklizivite"
+  },
+  "options": [
+    {
+      "name": "Kid Friendly",
+      "translations": {
+        "en": "Kid Friendly",
+        "es": "Apto para niños",
+        "fr": "Adapté aux enfants",
+        "pt": "Adequado para crianças",
+        "zh": "适合儿童",
+        "ar": "مناسب للأطفال",
+        "ht": "Apwopriye pou timoun"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c2c"
+      }
+    },
+    {
+      "name": "Kids Welcomed",
+      "translations": {
+        "en": "Kids Welcomed",
+        "es": "Niños bienvenidos",
+        "fr": "Enfants bienvenus",
+        "pt": "Crianças são bem-vindas",
+        "zh": "欢迎儿童",
+        "ar": "الأطفال مرحب بهم",
+        "ht": "Timoun yo byenveni"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c2d"
+      }
+    },
+    {
+      "name": "Autism Friendly",
+      "translations": {
+        "en": "Autism Friendly",
+        "es": "Amigable para personas con autismo",
+        "fr": "Adapté aux personnes autistes",
+        "pt": "Adequado para pessoas com autismo",
+        "zh": "自闭症友好",
+        "ar": "مناسب للأشخاص المصابين بالتوحد",
+        "ht": "Apwopriye pou moun ki gen otis"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c2e"
+      }
+    },
+    {
+      "name": "Sensory Friendly",
+      "translations": {
+        "en": "Sensory Friendly",
+        "es": "Amigable para sensibilidades sensoriales",
+        "fr": "Adapté aux sensibilités sensorielles",
+        "pt": "Adequado para sensibilidades sensoriais",
+        "zh": "感官友好",
+        "ar": "مناسب للحساسيات الحسية",
+        "ht": "Apwopriye pou sansiblite sansoryèl"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c2f"
+      }
+    },
+    {
+      "name": "Special Needs Experience",
+      "translations": {
+        "en": "Special Needs Experience",
+        "es": "Experiencia con necesidades especiales",
+        "fr": "Expérience avec les besoins particuliers",
+        "pt": "Experiência com necessidades especiais",
+        "zh": "特殊需求服务经验",
+        "ar": "خبرة مع ذوي الاحتياجات الخاصة",
+        "ht": "Eksperyans ak bezwen espesyal"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c30"
+      }
+    },
+    {
+      "name": "Service Dog Friendly",
+      "translations": {
+        "en": "Service Dog Friendly",
+        "es": "Acepta perros de servicio",
+        "fr": "Accepte les chiens d’assistance",
+        "pt": "Aceita cães de serviço",
+        "zh": "服务犬友好",
+        "ar": "مناسب للكلاب المساعدة",
+        "ht": "Aksepte chen sèvis"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c31"
+      }
+    },
+    {
+      "name": "Wheelchair Accessible",
+      "translations": {
+        "en": "Wheelchair Accessible",
+        "es": "Accesible para sillas de ruedas",
+        "fr": "Accessible en fauteuil roulant",
+        "pt": "Acessível para cadeiras de rodas",
+        "zh": "轮椅无障碍",
+        "ar": "مناسب للكراسي المتحركة",
+        "ht": "Aksesib pou chèz woulant"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c32"
+      }
+    },
+    {
+      "name": "Elderly Care Experience",
+      "translations": {
+        "en": "Elderly Care Experience",
+        "es": "Experiencia en atención a personas mayores",
+        "fr": "Expérience avec les personnes âgées",
+        "pt": "Experiência com cuidados a idosos",
+        "zh": "老年护理经验",
+        "ar": "خبرة في رعاية كبار السن",
+        "ht": "Eksperyans nan swen granmoun aje"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c33"
+      }
+    },
+    {
+      "name": "Deaf / Hard of Hearing Friendly",
+      "translations": {
+        "en": "Deaf / Hard of Hearing Friendly",
+        "es": "Amigable para personas sordas o con dificultad auditiva",
+        "fr": "Adapté aux personnes sourdes ou malentendantes",
+        "pt": "Adequado para pessoas surdas ou com deficiência auditiva",
+        "zh": "聋人/听障人士友好",
+        "ar": "مناسب للصم وضعاف السمع",
+        "ht": "Apwopriye pou moun soud oswa ki tande di"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c34"
+      }
+    },
+    {
+      "name": "Plus Size Friendly",
+      "translations": {
+        "en": "Plus Size Friendly",
+        "es": "Inclusivo para tallas grandes",
+        "fr": "Adapté aux grandes tailles",
+        "pt": "Inclusivo para tamanhos grandes",
+        "zh": "大码友好",
+        "ar": "مناسب للمقاسات الكبيرة",
+        "ht": "Apwopriye pou moun gwo tay"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c35"
+      }
+    },
+    {
+      "name": "Trauma-Informed Provider",
+      "translations": {
+        "en": "Trauma-Informed Provider",
+        "es": "Proveedor con enfoque informado sobre el trauma",
+        "fr": "Prestataire sensible aux traumatismes",
+        "pt": "Profissional com abordagem informada sobre trauma",
+        "zh": "创伤知情服务提供者",
+        "ar": "مقدم خدمة مطلع على الصدمات النفسية",
+        "ht": "Founisè ki konprann chòk"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c36"
+      }
+    },
+    {
+      "name": "LGBTQ+ Friendly",
+      "translations": {
+        "en": "LGBTQ+ Friendly",
+        "es": "Amigable con LGBTQ+",
+        "fr": "Inclusif LGBTQ+",
+        "pt": "Amigável para LGBTQ+",
+        "zh": "LGBTQ+ 友好",
+        "ar": "ودود تجاه مجتمع LGBTQ+",
+        "ht": "Zanmitay pou LGBTQ+"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c37"
+      }
+    },
+    {
+      "name": "Gender Neutral Services",
+      "translations": {
+        "en": "Gender Neutral Services",
+        "es": "Servicios neutrales en cuanto al género",
+        "fr": "Services non genrés",
+        "pt": "Serviços neutros em relação ao gênero",
+        "zh": "性别中立服务",
+        "ar": "خدمات محايدة من حيث الجنس",
+        "ht": "Sèvis san distenksyon sèks"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c38"
+      }
+    },
+    {
+      "name": "Non-Binary Affirming",
+      "translations": {
+        "en": "Non-Binary Affirming",
+        "es": "Afirmativo para personas no binarias",
+        "fr": "Affirmatif pour les personnes non binaires",
+        "pt": "Afirmativo para pessoas não binárias",
+        "zh": "支持非二元性别者",
+        "ar": "داعِم للأشخاص غير الثنائيين",
+        "ht": "Sipòtif pou moun ki pa binè"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c39"
+      }
+    }
+  ],
+  "sortOrder": 1,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.617Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02cc1521e6e1e6e6689e21"
+  },
+  "name": "Certifications & Licensing",
+  "scope": "business",
+  "translations": {
+    "en": "Certifications & Licensing",
+    "es": "Certificaciones y licencias",
+    "fr": "Certifications et licences",
+    "pt": "Certificações e licenças",
+    "zh": "认证与执照",
+    "ar": "الشهادات والتراخيص",
+    "ht": "Sètifikasyon ak lisans"
+  },
+  "options": [
+    {
+      "name": "Licensed Cosmetologist",
+      "translations": {
+        "en": "Licensed Cosmetologist",
+        "es": "Cosmetólogo con licencia",
+        "fr": "Cosmétologue agréé",
+        "pt": "Cosmetologista licenciado",
+        "zh": "持证美容师",
+        "ar": "خبير تجميل مرخص",
+        "ht": "Kosmetològ ki gen lisans"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c49"
+      }
+    },
+    {
+      "name": "Licensed Esthetician",
+      "translations": {
+        "en": "Licensed Esthetician",
+        "es": "Esteticista con licencia",
+        "fr": "Esthéticienne agréée",
+        "pt": "Esteticista licenciado",
+        "zh": "持证皮肤护理师",
+        "ar": "أخصائي بشرة مرخص",
+        "ht": "Estetisyen ki gen lisans"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c4a"
+      }
+    },
+    {
+      "name": "Licensed Nail Technician",
+      "translations": {
+        "en": "Licensed Nail Technician",
+        "es": "Técnico de uñas con licencia",
+        "fr": "Technicien des ongles agréé",
+        "pt": "Técnico de unhas licenciado",
+        "zh": "持证美甲技师",
+        "ar": "فني أظافر مرخص",
+        "ht": "Teknisyen zong ki gen lisans"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c4b"
+      }
+    },
+    {
+      "name": "Licensed Massage Therapist",
+      "translations": {
+        "en": "Licensed Massage Therapist",
+        "es": "Masajista con licencia",
+        "fr": "Massothérapeute agréé",
+        "pt": "Massoterapeuta licenciado",
+        "zh": "持证按摩治疗师",
+        "ar": "معالج تدليك مرخص",
+        "ht": "Terapis masaj ki gen lisans"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c4c"
+      }
+    },
+    {
+      "name": "Licensed Barber",
+      "translations": {
+        "en": "Licensed Barber",
+        "es": "Barbero con licencia",
+        "fr": "Barbier agréé",
+        "pt": "Barbeiro licenciado",
+        "zh": "持证理发师",
+        "ar": "حلاق مرخص",
+        "ht": "Babye ki gen lisans"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c4d"
+      }
+    },
+    {
+      "name": "Certified Makeup Artist",
+      "translations": {
+        "en": "Certified Makeup Artist",
+        "es": "Maquillador certificado",
+        "fr": "Maquilleur certifié",
+        "pt": "Maquiador certificado",
+        "zh": "认证化妆师",
+        "ar": "فنان مكياج معتمد",
+        "ht": "Atis makiyaj sètifye"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c4e"
+      }
+    },
+    {
+      "name": "Certified Lash Technician",
+      "translations": {
+        "en": "Certified Lash Technician",
+        "es": "Técnico de pestañas certificado",
+        "fr": "Technicien des cils certifié",
+        "pt": "Técnico de cílios certificado",
+        "zh": "认证睫毛技师",
+        "ar": "فني رموش معتمد",
+        "ht": "Teknisyen sil sètifye"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c4f"
+      }
+    },
+    {
+      "name": "Certified Brow Artist",
+      "translations": {
+        "en": "Certified Brow Artist",
+        "es": "Especialista en cejas certificado",
+        "fr": "Artiste sourcils certifié",
+        "pt": "Especialista em sobrancelhas certificado",
+        "zh": "认证眉艺师",
+        "ar": "فنان حواجب معتمد",
+        "ht": "Atis sousi sètifye"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c50"
+      }
+    },
+    {
+      "name": "Certified Color Specialist",
+      "translations": {
+        "en": "Certified Color Specialist",
+        "es": "Especialista en color certificado",
+        "fr": "Spécialiste couleur certifié",
+        "pt": "Especialista em coloração certificado",
+        "zh": "认证染发专家",
+        "ar": "أخصائي ألوان معتمد",
+        "ht": "Espesyalis koulè sètifye"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c51"
+      }
+    },
+    {
+      "name": "Certified Natural Hair Specialist",
+      "translations": {
+        "en": "Certified Natural Hair Specialist",
+        "es": "Especialista certificado en cabello natural",
+        "fr": "Spécialiste certifié des cheveux naturels",
+        "pt": "Especialista certificado em cabelo natural",
+        "zh": "认证自然发专家",
+        "ar": "أخصائي شعر طبيعي معتمد",
+        "ht": "Espesyalis cheve natirèl sètifye"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c52"
+      }
+    },
+    {
+      "name": "Certified Trichologist",
+      "translations": {
+        "en": "Certified Trichologist",
+        "es": "Tricólogo certificado",
+        "fr": "Trichologue certifié",
+        "pt": "Tricologista certificado",
+        "zh": "认证毛发学专家",
+        "ar": "أخصائي علم الشعر معتمد",
+        "ht": "Trikològ sètifye"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c53"
+      }
+    },
+    {
+      "name": "CPR / First Aid Certified",
+      "translations": {
+        "en": "CPR / First Aid Certified",
+        "es": "Certificado en RCP / primeros auxilios",
+        "fr": "Certifié en RCR / premiers secours",
+        "pt": "Certificado em RCP / primeiros socorros",
+        "zh": "CPR/急救认证",
+        "ar": "معتمد في الإنعاش القلبي الرئوي / الإسعافات الأولية",
+        "ht": "Sètifye nan CPR / premye swen"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c54"
+      }
+    },
+    {
+      "name": "OSHA Certified",
+      "translations": {
+        "en": "OSHA Certified",
+        "es": "Certificado por OSHA",
+        "fr": "Certifié OSHA",
+        "pt": "Certificado pela OSHA",
+        "zh": "OSHA 认证",
+        "ar": "معتمد من OSHA",
+        "ht": "Sètifye OSHA"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c55"
+      }
+    },
+    {
+      "name": "Continuing Education Certified",
+      "translations": {
+        "en": "Continuing Education Certified",
+        "es": "Certificado en educación continua",
+        "fr": "Certifié en formation continue",
+        "pt": "Certificado em educação continuada",
+        "zh": "继续教育认证",
+        "ar": "معتمد في التعليم المستمر",
+        "ht": "Sètifye nan edikasyon kontinyèl"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c56"
+      }
+    }
+  ],
+  "sortOrder": 2,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.633Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02cc1521e6e1e6e6689e22"
+  },
+  "name": "Hair Specialties",
+  "scope": "business",
+  "translations": {
+    "en": "Hair Specialties",
+    "es": "Especialidades de cabello",
+    "fr": "Spécialités capillaires",
+    "pt": "Especialidades em cabelo",
+    "zh": "美发专长",
+    "ar": "تخصصات الشعر",
+    "ht": "Espesyalite cheve"
+  },
+  "options": [
+    {
+      "name": "Natural Hair Specialist",
+      "translations": {
+        "en": "Natural Hair Specialist",
+        "es": "Especialista en cabello natural",
+        "fr": "Spécialiste des cheveux naturels",
+        "pt": "Especialista em cabelo natural",
+        "zh": "自然发专家",
+        "ar": "أخصائي الشعر الطبيعي",
+        "ht": "Espesyalis cheve natirèl"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c66"
+      }
+    },
+    {
+      "name": "Curly Hair Specialist",
+      "translations": {
+        "en": "Curly Hair Specialist",
+        "es": "Especialista en cabello rizado",
+        "fr": "Spécialiste des cheveux bouclés",
+        "pt": "Especialista em cabelo cacheado",
+        "zh": "卷发专家",
+        "ar": "أخصائي الشعر المجعد",
+        "ht": "Espesyalis cheve boukle"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c67"
+      }
+    },
+    {
+      "name": "Textured Hair Specialist",
+      "translations": {
+        "en": "Textured Hair Specialist",
+        "es": "Especialista en cabello texturizado",
+        "fr": "Spécialiste des cheveux texturés",
+        "pt": "Especialista em cabelo texturizado",
+        "zh": "纹理发质专家",
+        "ar": "أخصائي الشعر ذو القوام",
+        "ht": "Espesyalis cheve teksti"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c68"
+      }
+    },
+    {
+      "name": "Fine / Thin Hair Specialist",
+      "translations": {
+        "en": "Fine / Thin Hair Specialist",
+        "es": "Especialista en cabello fino / delgado",
+        "fr": "Spécialiste des cheveux fins / clairsemés",
+        "pt": "Especialista em cabelo fino / ralo",
+        "zh": "细软/稀疏发质专家",
+        "ar": "أخصائي الشعر الناعم / الخفيف",
+        "ht": "Espesyalis cheve fen / ra"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c69"
+      }
+    },
+    {
+      "name": "Locs & Dreadlocks Specialist",
+      "translations": {
+        "en": "Locs & Dreadlocks Specialist",
+        "es": "Especialista en locs y rastas",
+        "fr": "Spécialiste des locs et dreadlocks",
+        "pt": "Especialista em locs e dreadlocks",
+        "zh": "脏辫与发绺专家",
+        "ar": "أخصائي اللوكس والدريدلوكس",
+        "ht": "Espesyalis loks ak dreadlocks"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c6a"
+      }
+    },
+    {
+      "name": "Braiding Specialist",
+      "translations": {
+        "en": "Braiding Specialist",
+        "es": "Especialista en trenzas",
+        "fr": "Spécialiste des tresses",
+        "pt": "Especialista em tranças",
+        "zh": "编发专家",
+        "ar": "أخصائي الضفائر",
+        "ht": "Espesyalis trese cheve"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c6b"
+      }
+    },
+    {
+      "name": "Extensions Specialist",
+      "translations": {
+        "en": "Extensions Specialist",
+        "es": "Especialista en extensiones",
+        "fr": "Spécialiste des extensions",
+        "pt": "Especialista em extensões",
+        "zh": "接发专家",
+        "ar": "أخصائي وصلات الشعر",
+        "ht": "Espesyalis ekstansyon cheve"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c6c"
+      }
+    },
+    {
+      "name": "Wig Installation & Customization",
+      "translations": {
+        "en": "Wig Installation & Customization",
+        "es": "Instalación y personalización de pelucas",
+        "fr": "Pose et personnalisation de perruques",
+        "pt": "Instalação e personalização de perucas",
+        "zh": "假发安装与定制",
+        "ar": "تركيب وتخصيص الشعر المستعار",
+        "ht": "Enstalasyon ak pèsonalizasyon perik"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c6d"
+      }
+    },
+    {
+      "name": "Color & Highlights Specialist",
+      "translations": {
+        "en": "Color & Highlights Specialist",
+        "es": "Especialista en color y reflejos",
+        "fr": "Spécialiste couleur et mèches",
+        "pt": "Especialista em coloração e luzes",
+        "zh": "染发与挑染专家",
+        "ar": "أخصائي الصبغة والهايلايت",
+        "ht": "Espesyalis koulè ak mèch"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c6e"
+      }
+    },
+    {
+      "name": "Keratin & Smoothing Treatments",
+      "translations": {
+        "en": "Keratin & Smoothing Treatments",
+        "es": "Tratamientos de queratina y alisado",
+        "fr": "Traitements à la kératine et lissage",
+        "pt": "Tratamentos de queratina e alisamento",
+        "zh": "角蛋白与顺滑护理",
+        "ar": "علاجات الكيراتين والتنعيم",
+        "ht": "Tretman keratin ak lisaj"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c6f"
+      }
+    },
+    {
+      "name": "Relaxer Services",
+      "translations": {
+        "en": "Relaxer Services",
+        "es": "Servicios de alisado químico",
+        "fr": "Services de défrisage",
+        "pt": "Serviços de relaxamento capilar",
+        "zh": "化学拉直服务",
+        "ar": "خدمات فرد الشعر الكيميائي",
+        "ht": "Sèvis relaksè cheve"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c70"
+      }
+    },
+    {
+      "name": "Bridal & Updo Specialist",
+      "translations": {
+        "en": "Bridal & Updo Specialist",
+        "es": "Especialista en peinados de novia y recogidos",
+        "fr": "Spécialiste mariée et chignons",
+        "pt": "Especialista em noivas e penteados presos",
+        "zh": "新娘与盘发专家",
+        "ar": "أخصائي تسريحات العرائس ورفع الشعر",
+        "ht": "Espesyalis lamarye ak chignon"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c71"
+      }
+    },
+    {
+      "name": "Men’s Cuts & Grooming",
+      "translations": {
+        "en": "Men’s Cuts & Grooming",
+        "es": "Cortes y arreglo personal para hombres",
+        "fr": "Coupes et soins pour hommes",
+        "pt": "Cortes e cuidados masculinos",
+        "zh": "男士剪发与修容",
+        "ar": "قصات وعناية الرجال",
+        "ht": "Koupe ak swen gason"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c72"
+      }
+    },
+    {
+      "name": "Kids’ Hair Specialist",
+      "translations": {
+        "en": "Kids’ Hair Specialist",
+        "es": "Especialista en cabello infantil",
+        "fr": "Spécialiste des cheveux pour enfants",
+        "pt": "Especialista em cabelo infantil",
+        "zh": "儿童美发专家",
+        "ar": "أخصائي شعر الأطفال",
+        "ht": "Espesyalis cheve timoun"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c73"
+      }
+    }
+  ],
+  "sortOrder": 3,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.638Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02cc1521e6e1e6e6689e23"
+  },
+  "name": "Nail Specialties",
+  "scope": "business",
+  "translations": {
+    "en": "Nail Specialties",
+    "es": "Especialidades de uñas",
+    "fr": "Spécialités des ongles",
+    "pt": "Especialidades em unhas",
+    "zh": "美甲专长",
+    "ar": "تخصصات الأظافر",
+    "ht": "Espesyalite zong"
+  },
+  "options": [
+    {
+      "name": "Acrylic Nails",
+      "translations": {
+        "en": "Acrylic Nails",
+        "es": "Uñas acrílicas",
+        "fr": "Ongles en acrylique",
+        "pt": "Unhas acrílicas",
+        "zh": "丙烯酸美甲",
+        "ar": "أظافر أكريليك",
+        "ht": "Zong akrilik"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c83"
+      }
+    },
+    {
+      "name": "Gel Nails",
+      "translations": {
+        "en": "Gel Nails",
+        "es": "Uñas de gel",
+        "fr": "Ongles en gel",
+        "pt": "Unhas de gel",
+        "zh": "凝胶美甲",
+        "ar": "أظافر جل",
+        "ht": "Zong jèl"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c84"
+      }
+    },
+    {
+      "name": "Dip Powder",
+      "translations": {
+        "en": "Dip Powder",
+        "es": "Polvo de inmersión",
+        "fr": "Poudre dip",
+        "pt": "Pó de imersão",
+        "zh": "蘸粉美甲",
+        "ar": "بودرة الغمس للأظافر",
+        "ht": "Poud tranpe pou zong"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c85"
+      }
+    },
+    {
+      "name": "Nail Art & Design",
+      "translations": {
+        "en": "Nail Art & Design",
+        "es": "Arte y diseño de uñas",
+        "fr": "Art et design des ongles",
+        "pt": "Arte e design de unhas",
+        "zh": "美甲艺术与设计",
+        "ar": "فن وتصميم الأظافر",
+        "ht": "Atizay ak konsepsyon zong"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c86"
+      }
+    },
+    {
+      "name": "Press-On Application",
+      "translations": {
+        "en": "Press-On Application",
+        "es": "Aplicación de uñas postizas adhesivas",
+        "fr": "Application de faux ongles à presser",
+        "pt": "Aplicação de unhas postiças press-on",
+        "zh": "贴片甲应用",
+        "ar": "تركيب الأظافر اللاصقة",
+        "ht": "Aplikasyon zong kole"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c87"
+      }
+    },
+    {
+      "name": "Nail Repair & Restoration",
+      "translations": {
+        "en": "Nail Repair & Restoration",
+        "es": "Reparación y restauración de uñas",
+        "fr": "Réparation et restauration des ongles",
+        "pt": "Reparo e restauração de unhas",
+        "zh": "指甲修复与护理",
+        "ar": "إصلاح وترميم الأظافر",
+        "ht": "Reparasyon ak restorasyon zong"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c88"
+      }
+    },
+    {
+      "name": "Spa Manicure & Pedicure",
+      "translations": {
+        "en": "Spa Manicure & Pedicure",
+        "es": "Manicura y pedicura de spa",
+        "fr": "Manucure et pédicure spa",
+        "pt": "Manicure e pedicure spa",
+        "zh": "水疗手足护理",
+        "ar": "مانيكير وباديكير سبا",
+        "ht": "Maniki ak pediki spa"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c89"
+      }
+    }
+  ],
+  "sortOrder": 4,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.643Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02cc1521e6e1e6e6689e24"
+  },
+  "name": "Skin & Wellness",
+  "scope": "business",
+  "translations": {
+    "en": "Skin & Wellness",
+    "es": "Piel y bienestar",
+    "fr": "Peau et bien-être",
+    "pt": "Pele e bem-estar",
+    "zh": "皮肤与健康护理",
+    "ar": "البشرة والعافية",
+    "ht": "Po ak byennèt"
+  },
+  "options": [
+    {
+      "name": "Skincare Specialist",
+      "translations": {
+        "en": "Skincare Specialist",
+        "es": "Especialista en cuidado de la piel",
+        "fr": "Spécialiste des soins de la peau",
+        "pt": "Especialista em cuidados com a pele",
+        "zh": "护肤专家",
+        "ar": "أخصائي العناية بالبشرة",
+        "ht": "Espesyalis swen po"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c92"
+      }
+    },
+    {
+      "name": "Facial Specialist",
+      "translations": {
+        "en": "Facial Specialist",
+        "es": "Especialista en tratamientos faciales",
+        "fr": "Spécialiste des soins du visage",
+        "pt": "Especialista em tratamentos faciais",
+        "zh": "面部护理专家",
+        "ar": "أخصائي علاجات الوجه",
+        "ht": "Espesyalis swen figi"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c93"
+      }
+    },
+    {
+      "name": "Waxing Specialist",
+      "translations": {
+        "en": "Waxing Specialist",
+        "es": "Especialista en depilación con cera",
+        "fr": "Spécialiste de l’épilation à la cire",
+        "pt": "Especialista em depilação com cera",
+        "zh": "蜜蜡脱毛专家",
+        "ar": "أخصائي إزالة الشعر بالشمع",
+        "ht": "Espesyalis epilasyon ak sir"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c94"
+      }
+    },
+    {
+      "name": "Threading Specialist",
+      "translations": {
+        "en": "Threading Specialist",
+        "es": "Especialista en depilación con hilo",
+        "fr": "Spécialiste de l’épilation au fil",
+        "pt": "Especialista em depilação com linha",
+        "zh": "线雕脱毛专家",
+        "ar": "أخصائي إزالة الشعر بالخيط",
+        "ht": "Espesyalis epilasyon ak fil"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c95"
+      }
+    },
+    {
+      "name": "Brow Lamination",
+      "translations": {
+        "en": "Brow Lamination",
+        "es": "Laminado de cejas",
+        "fr": "Lamination des sourcils",
+        "pt": "Laminação de sobrancelhas",
+        "zh": "眉毛定型",
+        "ar": "تصفيح الحواجب",
+        "ht": "Laminasyon sousi"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c96"
+      }
+    },
+    {
+      "name": "Lash Lift & Tint",
+      "translations": {
+        "en": "Lash Lift & Tint",
+        "es": "Lifting y tinte de pestañas",
+        "fr": "Rehaussement et teinture des cils",
+        "pt": "Lifting e tintura de cílios",
+        "zh": "睫毛提升与染色",
+        "ar": "رفع وتلوين الرموش",
+        "ht": "Leve ak tente sil"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c97"
+      }
+    },
+    {
+      "name": "Dermaplaning",
+      "translations": {
+        "en": "Dermaplaning",
+        "es": "Dermaplaning",
+        "fr": "Dermaplaning",
+        "pt": "Dermaplaning",
+        "zh": "皮肤刮除护理",
+        "ar": "ديرما بلانينغ",
+        "ht": "Dermaplaning"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c98"
+      }
+    },
+    {
+      "name": "Chemical Peels",
+      "translations": {
+        "en": "Chemical Peels",
+        "es": "Peelings químicos",
+        "fr": "Peelings chimiques",
+        "pt": "Peelings químicos",
+        "zh": "化学换肤",
+        "ar": "تقشير كيميائي",
+        "ht": "Peling chimik"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c99"
+      }
+    },
+    {
+      "name": "Body Treatments",
+      "translations": {
+        "en": "Body Treatments",
+        "es": "Tratamientos corporales",
+        "fr": "Soins du corps",
+        "pt": "Tratamentos corporais",
+        "zh": "身体护理",
+        "ar": "علاجات الجسم",
+        "ht": "Tretman kò"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c9a"
+      }
+    },
+    {
+      "name": "Massage Therapy",
+      "translations": {
+        "en": "Massage Therapy",
+        "es": "Terapia de masaje",
+        "fr": "Massothérapie",
+        "pt": "Massoterapia",
+        "zh": "按摩疗法",
+        "ar": "العلاج بالتدليك",
+        "ht": "Terapi masaj"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c9b"
+      }
+    },
+    {
+      "name": "Reiki Practitioner",
+      "translations": {
+        "en": "Reiki Practitioner",
+        "es": "Practicante de Reiki",
+        "fr": "Praticien Reiki",
+        "pt": "Praticante de Reiki",
+        "zh": "灵气疗愈师",
+        "ar": "ممارس ريكي",
+        "ht": "Pratisyen Reiki"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c9c"
+      }
+    },
+    {
+      "name": "Aromatherapy",
+      "translations": {
+        "en": "Aromatherapy",
+        "es": "Aromaterapia",
+        "fr": "Aromathérapie",
+        "pt": "Aromaterapia",
+        "zh": "芳香疗法",
+        "ar": "العلاج بالروائح",
+        "ht": "Aromaterapi"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c9d"
+      }
+    },
+    {
+      "name": "Ear Candling",
+      "translations": {
+        "en": "Ear Candling",
+        "es": "Conoterapia auricular",
+        "fr": "Bougies auriculaires",
+        "pt": "Cone hindu para ouvido",
+        "zh": "耳烛疗法",
+        "ar": "شمع الأذن العلاجي",
+        "ht": "Bouji zòrèy"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c9e"
+      }
+    },
+    {
+      "name": "Scalp Treatments",
+      "translations": {
+        "en": "Scalp Treatments",
+        "es": "Tratamientos del cuero cabelludo",
+        "fr": "Traitements du cuir chevelu",
+        "pt": "Tratamentos do couro cabeludo",
+        "zh": "头皮护理",
+        "ar": "علاجات فروة الرأس",
+        "ht": "Tretman po tèt"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262c9f"
+      }
+    }
+  ],
+  "sortOrder": 5,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.646Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02cc1521e6e1e6e6689e25"
+  },
+  "name": "Service Style & Availability",
+  "scope": "business",
+  "translations": {
+    "en": "Service Style & Availability",
+    "es": "Estilo de servicio y disponibilidad",
+    "fr": "Style de service et disponibilité",
+    "pt": "Estilo de serviço e disponibilidade",
+    "zh": "服务方式与可用时间",
+    "ar": "نمط الخدمة والتوفر",
+    "ht": "Kalite sèvis ak disponibilite"
+  },
+  "options": [
+    {
+      "name": "Mobile / Travel Services",
+      "translations": {
+        "en": "Mobile / Travel Services",
+        "es": "Servicios móviles / a domicilio",
+        "fr": "Services mobiles / à domicile",
+        "pt": "Serviços móveis / atendimento externo",
+        "zh": "移动/上门服务",
+        "ar": "خدمات متنقلة / سفر",
+        "ht": "Sèvis mobil / deplasman"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262caf"
+      }
+    },
+    {
+      "name": "Home Studio",
+      "translations": {
+        "en": "Home Studio",
+        "es": "Estudio en casa",
+        "fr": "Studio à domicile",
+        "pt": "Estúdio em casa",
+        "zh": "家庭工作室",
+        "ar": "استوديو منزلي",
+        "ht": "Estidyo lakay"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cb0"
+      }
+    },
+    {
+      "name": "Salon-Based",
+      "translations": {
+        "en": "Salon-Based",
+        "es": "Basado en salón",
+        "fr": "En salon",
+        "pt": "Atendimento em salão",
+        "zh": "沙龙服务",
+        "ar": "داخل صالون",
+        "ht": "Nan salon"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cb1"
+      }
+    },
+    {
+      "name": "Same-Day Availability",
+      "translations": {
+        "en": "Same-Day Availability",
+        "es": "Disponibilidad el mismo día",
+        "fr": "Disponibilité le jour même",
+        "pt": "Disponibilidade no mesmo dia",
+        "zh": "当天可预约",
+        "ar": "توفر في نفس اليوم",
+        "ht": "Disponib menm jou a"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cb2"
+      }
+    },
+    {
+      "name": "Weekend Availability",
+      "translations": {
+        "en": "Weekend Availability",
+        "es": "Disponibilidad los fines de semana",
+        "fr": "Disponibilité le week-end",
+        "pt": "Disponibilidade aos fins de semana",
+        "zh": "周末可预约",
+        "ar": "توفر في عطلة نهاية الأسبوع",
+        "ht": "Disponib wikenn"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cb3"
+      }
+    },
+    {
+      "name": "Evening & Late-Night Availability",
+      "translations": {
+        "en": "Evening & Late-Night Availability",
+        "es": "Disponibilidad por la tarde y tarde-noche",
+        "fr": "Disponibilité en soirée et tard le soir",
+        "pt": "Disponibilidade à noite e tarde da noite",
+        "zh": "晚间与深夜可预约",
+        "ar": "توفر مساءً وفي وقت متأخر من الليل",
+        "ht": "Disponib aswè ak ta lannwit"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cb4"
+      }
+    },
+    {
+      "name": "Early Morning Availability",
+      "translations": {
+        "en": "Early Morning Availability",
+        "es": "Disponibilidad temprano por la mañana",
+        "fr": "Disponibilité tôt le matin",
+        "pt": "Disponibilidade de manhã cedo",
+        "zh": "清晨可预约",
+        "ar": "توفر في الصباح الباكر",
+        "ht": "Disponib bonè nan maten"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cb5"
+      }
+    },
+    {
+      "name": "On-Location Services (events, shoots)",
+      "translations": {
+        "en": "On-Location Services (events, shoots)",
+        "es": "Servicios en locación (eventos, sesiones)",
+        "fr": "Services sur place (événements, shootings)",
+        "pt": "Serviços no local (eventos, ensaios)",
+        "zh": "现场服务（活动、拍摄）",
+        "ar": "خدمات في الموقع (فعاليات، جلسات تصوير)",
+        "ht": "Sèvis sou plas (evènman, sesyon foto)"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cb6"
+      }
+    }
+  ],
+  "sortOrder": 6,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.652Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02cc1521e6e1e6e6689e26"
+  },
+  "name": "Experience & Background",
+  "scope": "business",
+  "translations": {
+    "en": "Experience & Background",
+    "es": "Experiencia y trayectoria",
+    "fr": "Expérience et parcours",
+    "pt": "Experiência e histórico",
+    "zh": "经验与背景",
+    "ar": "الخبرة والخلفية",
+    "ht": "Eksperyans ak background"
+  },
+  "options": [
+    {
+      "name": "5+ Years Experience",
+      "translations": {
+        "en": "5+ Years Experience",
+        "es": "Más de 5 años de experiencia",
+        "fr": "Plus de 5 ans d’expérience",
+        "pt": "Mais de 5 anos de experiência",
+        "zh": "5年以上经验",
+        "ar": "خبرة 5 سنوات فأكثر",
+        "ht": "Plis pase 5 ane eksperyans"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cc0"
+      }
+    },
+    {
+      "name": "10+ Years Experience",
+      "translations": {
+        "en": "10+ Years Experience",
+        "es": "Más de 10 años de experiencia",
+        "fr": "Plus de 10 ans d’expérience",
+        "pt": "Mais de 10 anos de experiência",
+        "zh": "10年以上经验",
+        "ar": "خبرة 10 سنوات فأكثر",
+        "ht": "Plis pase 10 ane eksperyans"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cc1"
+      }
+    },
+    {
+      "name": "Bridal & Wedding Experience",
+      "translations": {
+        "en": "Bridal & Wedding Experience",
+        "es": "Experiencia en novias y bodas",
+        "fr": "Expérience mariée et mariage",
+        "pt": "Experiência com noivas e casamentos",
+        "zh": "新娘与婚礼经验",
+        "ar": "خبرة في العرائس وحفلات الزفاف",
+        "ht": "Eksperyans ak lamarye ak maryaj"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cc2"
+      }
+    },
+    {
+      "name": "Editorial & Photoshoot Experience",
+      "translations": {
+        "en": "Editorial & Photoshoot Experience",
+        "es": "Experiencia editorial y en sesiones fotográficas",
+        "fr": "Expérience éditoriale et shootings photo",
+        "pt": "Experiência editorial e em ensaios fotográficos",
+        "zh": "编辑拍摄与摄影造型经验",
+        "ar": "خبرة في الأعمال التحريرية وجلسات التصوير",
+        "ht": "Eksperyans editoryal ak sesyon foto"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cc3"
+      }
+    },
+    {
+      "name": "Film & TV Experience",
+      "translations": {
+        "en": "Film & TV Experience",
+        "es": "Experiencia en cine y televisión",
+        "fr": "Expérience cinéma et télévision",
+        "pt": "Experiência em cinema e TV",
+        "zh": "影视经验",
+        "ar": "خبرة في السينما والتلفزيون",
+        "ht": "Eksperyans nan fim ak televizyon"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cc4"
+      }
+    },
+    {
+      "name": "Competition & Performance Styling",
+      "translations": {
+        "en": "Competition & Performance Styling",
+        "es": "Estilismo para competencias y presentaciones",
+        "fr": "Coiffure et stylisme pour concours et performances",
+        "pt": "Produção para competições e apresentações",
+        "zh": "比赛与表演造型",
+        "ar": "تصفيف للمسابقات والعروض",
+        "ht": "Stil pou konpetisyon ak pèfòmans"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cc5"
+      }
+    },
+    {
+      "name": "Celebrity Clientele Experience",
+      "translations": {
+        "en": "Celebrity Clientele Experience",
+        "es": "Experiencia con clientes famosos",
+        "fr": "Expérience avec une clientèle de célébrités",
+        "pt": "Experiência com clientes celebridades",
+        "zh": "名人客户服务经验",
+        "ar": "خبرة مع عملاء من المشاهير",
+        "ht": "Eksperyans ak kliyan selebrite"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cc6"
+      }
+    },
+    {
+      "name": "Published / Featured Work",
+      "translations": {
+        "en": "Published / Featured Work",
+        "es": "Trabajo publicado / destacado",
+        "fr": "Travail publié / mis en avant",
+        "pt": "Trabalho publicado / destacado",
+        "zh": "已发表/被报道作品",
+        "ar": "أعمال منشورة / مميزة",
+        "ht": "Travay pibliye / prezante"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cc7"
+      }
+    }
+  ],
+  "sortOrder": 7,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.655Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02cc1521e6e1e6e6689e27"
+  },
+  "name": "Business & Safety",
+  "scope": "business",
+  "translations": {
+    "en": "Business & Safety",
+    "es": "Negocio y seguridad",
+    "fr": "Entreprise et sécurité",
+    "pt": "Negócios e segurança",
+    "zh": "业务与安全",
+    "ar": "الأعمال والسلامة",
+    "ht": "Biznis ak sekirite"
+  },
+  "options": [
+    {
+      "name": "Background Checked",
+      "translations": {
+        "en": "Background Checked",
+        "es": "Verificación de antecedentes realizada",
+        "fr": "Vérification des antécédents effectuée",
+        "pt": "Verificação de antecedentes realizada",
+        "zh": "已完成背景调查",
+        "ar": "تم التحقق من الخلفية",
+        "ht": "Verifikasyon background fèt"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cd1"
+      }
+    },
+    {
+      "name": "Fully Insured",
+      "translations": {
+        "en": "Fully Insured",
+        "es": "Totalmente asegurado",
+        "fr": "Entièrement assuré",
+        "pt": "Totalmente segurado",
+        "zh": "全面投保",
+        "ar": "مؤمن بالكامل",
+        "ht": "Asire nèt"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cd2"
+      }
+    },
+    {
+      "name": "Sanitization Certified",
+      "translations": {
+        "en": "Sanitization Certified",
+        "es": "Certificado en desinfección",
+        "fr": "Certifié en désinfection",
+        "pt": "Certificado em sanitização",
+        "zh": "卫生消毒认证",
+        "ar": "معتمد في التعقيم",
+        "ht": "Sètifye nan sanitizasyon"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cd3"
+      }
+    },
+    {
+      "name": "Eco-Friendly Products Used",
+      "translations": {
+        "en": "Eco-Friendly Products Used",
+        "es": "Usa productos ecológicos",
+        "fr": "Utilise des produits écologiques",
+        "pt": "Usa produtos ecológicos",
+        "zh": "使用环保产品",
+        "ar": "يستخدم منتجات صديقة للبيئة",
+        "ht": "Itilize pwodwi ki bon pou anviwònman"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cd4"
+      }
+    },
+    {
+      "name": "Vegan & Cruelty-Free Products",
+      "translations": {
+        "en": "Vegan & Cruelty-Free Products",
+        "es": "Productos veganos y libres de crueldad",
+        "fr": "Produits véganes et sans cruauté",
+        "pt": "Produtos veganos e livres de crueldade",
+        "zh": "纯素且零残忍产品",
+        "ar": "منتجات نباتية وغير مجربة على الحيوانات",
+        "ht": "Pwodwi vegan ak san mechanste sou bèt"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cd5"
+      }
+    },
+    {
+      "name": "Fragrance-Free Products Available",
+      "translations": {
+        "en": "Fragrance-Free Products Available",
+        "es": "Productos sin fragancia disponibles",
+        "fr": "Produits sans parfum disponibles",
+        "pt": "Produtos sem fragrância disponíveis",
+        "zh": "提供无香产品",
+        "ar": "تتوفر منتجات خالية من العطور",
+        "ht": "Pwodwi san parfen disponib"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cd6"
+      }
+    },
+    {
+      "name": "Hypoallergenic Products Available",
+      "translations": {
+        "en": "Hypoallergenic Products Available",
+        "es": "Productos hipoalergénicos disponibles",
+        "fr": "Produits hypoallergéniques disponibles",
+        "pt": "Produtos hipoalergênicos disponíveis",
+        "zh": "提供低敏产品",
+        "ar": "تتوفر منتجات قليلة التحسس",
+        "ht": "Pwodwi ipoalèjenik disponib"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cd7"
+      }
+    }
+  ],
+  "sortOrder": 8,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.659Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02f0a821e6e1e6e6689e2b"
+  },
+  "name": "Service Preferences",
+  "scope": "user",
+  "translations": {
+    "en": "Service Preferences",
+    "es": "Preferencias de servicio",
+    "fr": "Préférences de service",
+    "pt": "Preferências de serviço",
+    "zh": "服务偏好",
+    "ar": "تفضيلات الخدمة",
+    "ht": "Preferans sèvis"
+  },
+  "options": [
+    {
+      "name": "Makeup",
+      "translations": {
+        "en": "Makeup",
+        "es": "Maquillaje",
+        "fr": "Maquillage",
+        "pt": "Maquiagem",
+        "zh": "化妆",
+        "ar": "مكياج",
+        "ht": "Makiyaj"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262ce0"
+      }
+    },
+    {
+      "name": "Hair Styling",
+      "translations": {
+        "en": "Hair Styling",
+        "es": "Peinado",
+        "fr": "Coiffure",
+        "pt": "Penteado",
+        "zh": "发型设计",
+        "ar": "تصفيف الشعر",
+        "ht": "Kwafur"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262ce1"
+      }
+    }
+  ],
+  "sortOrder": 1,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.662Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02f0a821e6e1e6e6689e2c"
+  },
+  "name": "Preferred Service Type",
+  "scope": "both",
+  "translations": {
+    "en": "Preferred Service Type",
+    "es": "Tipo de servicio preferido",
+    "fr": "Type de service préféré",
+    "pt": "Tipo de serviço preferido",
+    "zh": "首选服务类型",
+    "ar": "نوع الخدمة المفضل",
+    "ht": "Kalite sèvis ou prefere"
+  },
+  "options": [
+    {
+      "name": "At Business Location",
+      "translations": {
+        "en": "At Business Location",
+        "es": "En la ubicación del negocio",
+        "fr": "À l'emplacement de l'entreprise",
+        "pt": "No local da empresa",
+        "zh": "在商家地点",
+        "ar": "في موقع العمل",
+        "ht": "Nan lokal biznis la"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262ce5"
+      }
+    },
+    {
+      "name": "At Home",
+      "translations": {
+        "en": "At Home",
+        "es": "En casa",
+        "fr": "À domicile",
+        "pt": "Em casa",
+        "zh": "在家",
+        "ar": "في المنزل",
+        "ht": "Lakay"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262ce6"
+      }
+    }
+  ],
+  "sortOrder": 2,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.663Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02f0a821e6e1e6e6689e2d"
+  },
+  "name": "Preferred Booking Time",
+  "scope": "user",
+  "translations": {
+    "en": "Preferred Booking Time",
+    "es": "Horario de reserva preferido",
+    "fr": "Heure de réservation préférée",
+    "pt": "Horário de reserva preferido",
+    "zh": "首选预约时间",
+    "ar": "وقت الحجز المفضل",
+    "ht": "Lè ou prefere fè rezèvasyon"
+  },
+  "options": [
+    {
+      "name": "Afternoon",
+      "translations": {
+        "en": "Afternoon",
+        "es": "Tarde",
+        "fr": "Après-midi",
+        "pt": "Tarde",
+        "zh": "下午",
+        "ar": "بعد الظهر",
+        "ht": "Apremidi"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cea"
+      }
+    },
+    {
+      "name": "Morning",
+      "translations": {
+        "en": "Morning",
+        "es": "Mañana",
+        "fr": "Matin",
+        "pt": "Manhã",
+        "zh": "早上",
+        "ar": "الصباح",
+        "ht": "Maten"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262ceb"
+      }
+    }
+  ],
+  "sortOrder": 3,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.665Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02f0a821e6e1e6e6689e2e"
+  },
+  "name": "When Do You Usually Book?",
+  "scope": "user",
+  "translations": {
+    "en": "When Do You Usually Book?",
+    "es": "¿Cuándo sueles reservar?",
+    "fr": "Quand réservez-vous habituellement ?",
+    "pt": "Quando você costuma reservar?",
+    "zh": "你通常什么时候预约？",
+    "ar": "متى تحجز عادةً؟",
+    "ht": "Kilè ou konn fè rezèvasyon anjeneral?"
+  },
+  "options": [
+    {
+      "name": "Plan Ahead",
+      "translations": {
+        "en": "Plan Ahead",
+        "es": "Planificar con anticipación",
+        "fr": "Planifier à l'avance",
+        "pt": "Planejar com antecedência",
+        "zh": "提前计划",
+        "ar": "التخطيط مسبقًا",
+        "ht": "Planifye davans"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cef"
+      }
+    },
+    {
+      "name": "Last Minute",
+      "translations": {
+        "en": "Last Minute",
+        "es": "Último minuto",
+        "fr": "Dernière minute",
+        "pt": "Última hora",
+        "zh": "临时预约",
+        "ar": "في اللحظة الأخيرة",
+        "ht": "Dènye minit"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cf0"
+      }
+    }
+  ],
+  "sortOrder": 4,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.666Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02f0a821e6e1e6e6689e2f"
+  },
+  "name": "How Far Are You Willing To Travel?",
+  "scope": "user",
+  "translations": {
+    "en": "How Far Are You Willing To Travel?",
+    "es": "¿Qué tan lejos estás dispuesto a viajar?",
+    "fr": "Jusqu'où êtes-vous prêt à vous déplacer ?",
+    "pt": "Até onde você está disposto a viajar?",
+    "zh": "你愿意出行多远？",
+    "ar": "إلى أي مدى أنت مستعد للسفر؟",
+    "ht": "Ki distans ou dispoze vwayaje?"
+  },
+  "options": [
+    {
+      "name": "Within 5 km",
+      "translations": {
+        "en": "Within 5 km",
+        "es": "Dentro de 5 km",
+        "fr": "Dans un rayon de 5 km",
+        "pt": "Dentro de 5 km",
+        "zh": "5公里以内",
+        "ar": "ضمن 5 كم",
+        "ht": "Nan 5 km"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cf4"
+      }
+    },
+    {
+      "name": "Within 10 km",
+      "translations": {
+        "en": "Within 10 km",
+        "es": "Dentro de 10 km",
+        "fr": "Dans un rayon de 10 km",
+        "pt": "Dentro de 10 km",
+        "zh": "10公里以内",
+        "ar": "ضمن 10 كم",
+        "ht": "Nan 10 km"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cf5"
+      }
+    }
+  ],
+  "sortOrder": 5,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.668Z"
+  },
+  "status": "active"
+},
+{
+  "_id": {
+    "$oid": "6a02f0a821e6e1e6e6689e30"
+  },
+  "name": "How Often Do You Book Services?",
+  "scope": "user",
+  "translations": {
+    "en": "How Often Do You Book Services?",
+    "es": "¿Con qué frecuencia reservas servicios?",
+    "fr": "À quelle fréquence réservez-vous des services ?",
+    "pt": "Com que frequência você reserva serviços?",
+    "zh": "你多久预约一次服务？",
+    "ar": "كم مرة تحجز الخدمات؟",
+    "ht": "Konbyen fwa ou fè rezèvasyon sèvis?"
+  },
+  "options": [
+    {
+      "name": "Weekly",
+      "translations": {
+        "en": "Weekly",
+        "es": "Semanalmente",
+        "fr": "Chaque semaine",
+        "pt": "Semanalmente",
+        "zh": "每周",
+        "ar": "أسبوعيًا",
+        "ht": "Chak semèn"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cf9"
+      }
+    },
+    {
+      "name": "Monthly",
+      "translations": {
+        "en": "Monthly",
+        "es": "Mensualmente",
+        "fr": "Chaque mois",
+        "pt": "Mensalmente",
+        "zh": "每月",
+        "ar": "شهريًا",
+        "ht": "Chak mwa"
+      },
+      "status": "active",
+      "_id": {
+        "$oid": "6a02f52098f27f76dd262cfa"
+      }
+    }
+  ],
+  "sortOrder": 6,
+  "updatedAt": {
+    "$date": "2026-05-12T09:38:40.669Z"
+  },
+  "status": "active"
+}]

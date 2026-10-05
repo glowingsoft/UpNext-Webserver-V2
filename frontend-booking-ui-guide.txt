@@ -1,0 +1,512 @@
+================================================================================
+UPNEXT — BOOKING SCREENS: BUTTONS + API GUIDE (for Frontend)
+Customer section first, business section below.
+Matches the "Request Service" / "View Booking Scenarios" Figma flows.
+================================================================================
+
+CONVENTIONS
+--------------------------------------------------------------------------------
+- Base path:  /api/v1/app        (all endpoints below are relative to this)
+- Auth:       Authorization: Bearer <JWT>   on every call
+- Envelope:   every response is { message, data, meta? } — read payloads from data
+- The booking object returned by GET /bookings and GET /bookings/:id contains
+  everything the UI needs to decide what to render:
+      status          -> "requested" | "scheduled" | "ongoing" | "completed"
+                         | "canceled" | "expired"
+      paymentStatus   -> "pending" | "vaulted" | "authorized"
+                         | "requires_payment_fix" | "captured"
+                         | "partially_captured" | "released" | "failed"
+      name, price, photos, description   (flattened from the booked service/package)
+      scope           -> "service" | "package"   (which detail screen to open)
+      target[0].id    -> the service/package id  (for Service Details / reviews)
+      date, slot { open, close }, preferredServiceType
+      businessInfo { _id, businessName, image, location }
+      paymentInfo { status, amount }      (null until a charge exists)
+      cancel { reason, by }               (only on canceled/rejected bookings)
+
+
+PAYMENT STATUS -> UI LABEL (the Figma only shows "Paid" / "Pending" / "--")
+--------------------------------------------------------------------------------
+booking.paymentStatus        label      note
+---------------------        -----      ----
+authorized                   Paid       hold placed; customer is committed
+captured                     Paid       funds taken (after completion)
+partially_captured           Paid       late-cancel fee was taken
+vaulted                      Paid       card on file; charged ~4 days before slot
+requires_payment_fix         Pending    ACTION NEEDED -> show "Pay Now" (red)
+pending                      Pending    checkout not finished (see EDGE CASES)
+released / none              --         nothing held (expired/canceled/free)
+failed                       Failed     debt lock — see OUTSTANDING DEBT below
+
+Rule of thumb: "Pay Now" is shown ONLY when paymentStatus === "requires_payment_fix".
+Everything the customer already secured (authorized/vaulted/captured) reads "Paid".
+
+
+================================================================================
+BUTTON MATRIX  (View Booking screen — decide from status + paymentStatus)
+================================================================================
+
+booking.status   paymentStatus              Buttons (top -> bottom)
+--------------   -------------              -----------------------
+requested        authorized|vaulted         [Service Details] [Withdraw Request]
+scheduled        authorized|vaulted|        [Service Details] [Cancel]
+                 captured
+scheduled        requires_payment_fix       [Service Details] [Pay Now]
+ongoing          any                        [Service Details] [Review - DISABLED]
+                                            + attention note: "Review will be
+                                              available once session is over"
+completed        captured|partially_        [Service Details] [Review]      (no review yet)
+                 captured                   [Service Details] [View Review] (already reviewed)
+expired          --                         [Service Details]
+canceled         --                         [Service Details]
+                                            + "Cancellation Reason" card from
+                                              booking.cancel.reason (+ .by)
+
+Notes:
+- "Withdraw Request" and "Cancel" hit the SAME endpoint (PATCH /bookings/:id/cancel);
+  only the label differs by status. While "requested", nothing has been captured,
+  so withdrawing always releases the customer fully.
+- "Cancel" on a scheduled booking may charge a late-cancellation fee — the backend
+  decides from the policy snapshot (refundPercentage / howLateCanCancel captured at
+  booking time). Show the service's Policies tab info in the confirm dialog.
+- Whether to show [Review] vs [View Review]: call
+  GET /reviews?scope=<booking.scope>&targetId=<booking.target[0].id>
+  and check whether a review by the logged-in user exists in data.
+
+
+================================================================================
+SCREEN-BY-SCREEN
+================================================================================
+
+1) SERVICE DETAIL — "Request Service" (General / Reviews / Policies tabs)
+--------------------------------------------------------------------------------
+General tab:   GET /services/:serviceId          (or GET /packages/:packageId)
+               -> name, description, price, photos, preferredServiceType,
+                  business info, avgRating/totalReviews
+Reviews tab:   GET /reviews?scope=service&targetId=<serviceId>&page=1&limit=10
+               (scope=package for packages; optional &rating=1..5 filter)
+Policies tab:  fields already on the service/package detail response:
+               refundPercentage (%), refundRules (text), howLateCanCancel
+[Request Service] -> go to slot picking:
+               GET /bookings/slots?scope=service&targetId=<id>&date=YYYY-MM-DD
+               -> available slots for that day, then open the Pay Now sheet.
+
+
+2) PAY NOW SHEET (at booking creation — price, promo code, pay)
+--------------------------------------------------------------------------------
+Promo toggle ON:
+  GET /promotions?targetId=<serviceOrPackageId>&status=active&expired=false
+  -> pick the promotion, show discounted price locally
+  (discountType "percentage" -> price - price*discount/100; "fixed" -> price - discount)
+
+CARD COLLECTION CHANGED — read this before wiring [Pay Now]:
+  The backend now has a hard rule: a Booking record is never created unless
+  payment is confirmed. That means POST /bookings REQUIRES a real Stripe
+  PaymentMethod id in the payload up front — PaymentSheet (initPaymentSheet /
+  presentPaymentSheet) doesn't fit this anymore, since it never hands the app
+  a paymentMethod id. Use CardField + createPaymentMethod() instead:
+
+    import { CardField, useStripe } from '@stripe/stripe-react-native';
+
+    const { createPaymentMethod, handleNextAction, handleNextActionForSetup } = useStripe();
+    const [cardDetails, setCardDetails] = useState(null);
+
+    <CardField
+      postalCodeEnabled={true}
+      onCardChange={(details) => setCardDetails(details)}
+      style={{ height: 50 }}
+    />
+
+    const handleSubmitRequest = async () => {
+      if (!cardDetails?.complete) {
+        setErrMsg(t('requestService.cardIncomplete'));
+        return;
+      }
+
+      const { paymentMethod, error: pmError } = await createPaymentMethod({
+        paymentMethodType: 'Card',
+      });
+      if (pmError) {
+        setErrMsg(pmError.message);
+        return;
+      }
+
+      const response = await dispatch(addBooking({
+        scope, targetId, date: formatDateForApi(selectedDateObj.fullDate),
+        slot: { open: rawSlot.open, close: rawSlot.close },
+        stripePaymentMethodId: paymentMethod.id,
+      }));
+
+      const data = response?.data?.data;
+
+      if (data?.booking) {
+        // Confirmed synchronously — no 3DS challenge was needed. Done.
+        navigation.pop(2);
+        return;
+      }
+
+      if (data?.clientSecret) {
+        // 3D Secure required — complete the challenge using the SAME
+        // paymentMethod that's already attached. Do NOT call
+        // confirmPayment/confirmSetupIntent here (that's for when you don't
+        // have a payment method yet); use handleNextAction instead.
+        const { error } = data.intentType === 'setup'
+          ? await handleNextActionForSetup(data.clientSecret)
+          : await handleNextAction(data.clientSecret);
+        if (error) {
+          setErrMsg(error.message);
+          return;
+        }
+        // Challenge passed — the Booking materializes once the webhook lands
+        // (typically <2s). Refresh/poll GET /bookings before navigating to it.
+        navigation.pop(2);
+      }
+    };
+
+[Pay Now] -> POST /bookings
+  body: {
+    "scope": "service" | "package",
+    "targetId": "<id>",
+    "date": "YYYY-MM-DD",
+    "slot": { "open": "HH:mm", "close": "HH:mm" },
+    "stripePaymentMethodId": "<pm_id>",   // REQUIRED — from createPaymentMethod()
+    "promotion": "<promotionId>"          // optional
+  }
+
+  RESPONSES:
+  - 201, data: { booking, intentType }
+      Payment was confirmed immediately (no 3DS needed). The Booking exists
+      now — this is the only response shape with a real `booking` in it.
+  - 201, data: { draftId, clientSecret, intentType }
+      3D Secure is required. No Booking exists yet — only a temporary
+      checkout draft (holds the slot for ~30 min). Complete the challenge
+      with handleNextAction / handleNextActionForSetup(clientSecret) as
+      shown above; the Booking gets created the moment the webhook confirms
+      the challenge passed.
+  - 400 "booking_payment_failed"
+      The card was declined outright (no 3DS involved). Nothing was
+      created — no booking, no draft. Let the user pick another card and
+      resubmit (new createPaymentMethod() + new POST /bookings).
+  - 400 "missing_raw_fields" (values.fields includes "stripePaymentMethodId")
+      The card field wasn't filled in / createPaymentMethod() wasn't called
+      before submitting — a client-side bug, not a Stripe decline.
+
+  THE PAYMENT FORK (backend decides by how far away the slot is) — this part
+  is unchanged and still matters for which webhook event finalizes things:
+  - intentType === "payment"  (slot <= 4 days away)
+      An AUTH HOLD (manual capture) — nothing is charged until completion.
+  - intentType === "setup"    (slot > 4 days away)
+      Card is VAULTED, nothing charged now; backend auto-charges ~4 days
+      before the slot.
+
+  After the challenge (if any) resolves, the backend routes the booking via
+  webhook: it becomes "scheduled" (auto-accept) or stays "requested" (pending
+  approval, 24h window). Poll GET /bookings/:id or refresh the list — do NOT
+  assume "scheduled" immediately.
+
+  3D SECURE (SCA challenge) — mechanics:
+  Because stripePaymentMethodId is already attached server-side, if Stripe
+  requires extra authentication the create-booking response comes back as
+  `{ draftId, clientSecret, intentType }` instead of `{ booking }` (see above)
+  — that's your signal to call handleNextAction/handleNextActionForSetup, NOT
+  confirmPayment/confirmSetupIntent (those are for confirming with a payment
+  method for the first time, which you've already done). Stripe renders the
+  challenge natively — nothing to build.
+  The only bug to watch for: if the user backgrounds the app / navigates away
+  WHILE the challenge is showing, handleNextAction's promise never resolves
+  and the PaymentIntent is stuck at "requires_action" forever — the draft
+  just expires after ~30 min (nothing was ever charged, no booking exists).
+  If that happens, don't retry against the same clientSecret past the 30-min
+  mark — start over with a fresh createPaymentMethod() + POST /bookings.
+  Standard test card to reproduce this locally: 4000 0025 0000 3155 (any
+  future expiry, any CVC/postal) always triggers a 3DS challenge in test mode.
+
+  ERRORS:
+  - 403 translationKey "outstanding_debt" -> see OUTSTANDING DEBT below.
+  - 400 "booking_slot_full" / "booking_slot_invalid" -> re-fetch slots.
+  - 400 "booking_payment_failed" -> card declined, see RESPONSES above.
+  - "Business Stripe account is not connected" / "has not completed Stripe
+    onboarding" should never surface to customers (such catalogs are hidden),
+    but treat any 4xx here as "this provider can't take bookings right now".
+
+
+3) BOOKING REQUEST (status "requested") — Image 1
+--------------------------------------------------------------------------------
+Data:     GET /bookings/:id
+Buttons:  [Service Details]   -> GET /services/:target[0].id (or /packages/...)
+          [Withdraw Request]  -> PATCH /bookings/:id/cancel
+                                 body: { "reason": "<user text>" }
+                                 -> hold released / card unlinked, no charge.
+Show "Requested At" from booking.createdAt. If the provider doesn't answer
+within 24h the backend auto-expires it (customer gets a push, list refreshes
+to "expired").
+
+
+4) VIEW BOOKING — SCHEDULED + Paid — Image 2 (left)
+--------------------------------------------------------------------------------
+Buttons:  [Service Details]
+          [Cancel] -> PATCH /bookings/:id/cancel  body: { "reason": "<text>" }
+          Refund outcome is policy-driven (free window -> full release; late ->
+          partial capture; non-refundable -> full capture). Surface
+          refundPercentage/refundRules in the confirmation dialog.
+
+
+5) VIEW BOOKING — SCHEDULED + Payment Pending — Image 2 (middle)
+--------------------------------------------------------------------------------
+This is paymentStatus === "requires_payment_fix" (the scheduled charge on the
+vaulted card failed; customer has a 24h grace window — booking.paymentFixDeadline).
+Buttons:  [Service Details]
+          [Pay Now] -> give the user a choice: retry the card on file, or add
+                       a new one (same CardField + createPaymentMethod() flow
+                       as booking creation).
+
+  POST /bookings/:id/fix-payment
+    body: {}                                          // retry existing card
+    body: { "stripePaymentMethodId": "<pm_id>" }       // pay with a new card
+
+  RESPONSES (same shapes for both existing-card and new-card):
+  - data: { booking, intentType: "payment" | "setup" }
+      Fully fixed, no further action — paymentStatus is "authorized" now.
+  - data: { booking, clientSecret, intentType: "setup" }
+      New card needs 3DS just to vault it — call
+      handleNextActionForSetup(clientSecret). Once vaulted, the backend
+      retries the charge automatically via webhook.
+  - data: { booking, clientSecret, intentType: "payment" }
+      The card (existing OR freshly-vaulted new one) needs a fresh 3DS
+      challenge for the actual charge — call handleNextAction(clientSecret).
+      Note: for the new-card path this can happen on TOP of the setup-3DS
+      case above (vault clears fine, then the immediate charge attempt still
+      needs its own challenge) — always check the response you get back after
+      completing a challenge; don't assume one challenge means you're done.
+  - 400 "booking_payment_method_required" -> no card on file at all (shouldn't
+      normally happen); force the "add a new card" path.
+  - 400 "booking_payment_fix_failed" -> the card (existing or newly-added) was
+      declined outright (not a 3DS case) — steer the user to try a different
+      card. If it was a new card, it's still saved on file for next time.
+If the deadline passes unpaid, the backend cancels the booking and frees the slot.
+
+
+6) VIEW BOOKING — ONGOING — Image 2 (right)
+--------------------------------------------------------------------------------
+Buttons:  [Service Details]
+          [Review] rendered DISABLED (gray) + attention note
+          "Review will be available once session is over."
+No review API call is possible yet — reviews only accept completed bookings.
+
+
+7) VIEW BOOKING — COMPLETED — Image 3 (left & middle)
+--------------------------------------------------------------------------------
+On open: GET /reviews?scope=<booking.scope>&targetId=<booking.target[0].id>
+         -> if the logged-in user has no review yet   -> show [Review]
+         -> if they already reviewed                  -> show [View Review]
+
+[Review] opens the Add Review modal (stars + text):
+         POST /reviews
+         body: { "scope": "service"|"package", "targetId": "<id>",
+                 "rating": 1..5 (integer), "comment": "<text>" }
+         -> 201; switch button to [View Review].
+[View Review] shows the user's review from the GET above (read-only screen).
+
+
+8) VIEW BOOKING — EXPIRED — Image 3 (right)
+--------------------------------------------------------------------------------
+Payment column shows "--" (paymentStatus "released" — hold was auto-released).
+Buttons:  [Service Details] only.
+
+
+9) VIEW BOOKING — CANCELLED — Image 4 (left)
+--------------------------------------------------------------------------------
+Buttons:  [Service Details] only.
+Render the "Cancellation Reason" card from booking.cancel.reason;
+booking.cancel.by ("user"|"business") tells you who cancelled, if you want to
+phrase it ("You cancelled…" / "The provider cancelled…").
+
+
+================================================================================
+EDGE CASES THE FIGMA DOESN'T SHOW (but the UI must handle)
+================================================================================
+
+A) OUTSTANDING DEBT (a past capture failed — customer is locked)
+   Any POST /bookings or GET /bookings/slots returns 403 with translationKey
+   "outstanding_debt". Show a blocking "Complete Payment" screen for the unpaid
+   booking (user.outstandingBooking on the profile):
+       POST /payment/booking/:bookingId     body: { "paymentMethod": "<pm_id>" }
+   (or confirm with a fresh card via the Stripe sheet). On success the lock
+   clears and booking creation works again.
+
+B) ABANDONED CHECKOUT (3DS challenge never completed)
+   If the user killed the app between POST /bookings and completing the 3DS
+   challenge (handleNextAction/handleNextActionForSetup), there is no Booking
+   to show at all — only a checkout draft on the backend, invisible to the
+   app, auto-expired ~30 minutes after creation. There's nothing to poll or
+   display; if the user comes back, just let them start a fresh booking
+   (new createPaymentMethod() + POST /bookings). The old clientSecret is not
+   reusable past the 30-min window.
+
+C) STATUS IS WEBHOOK-DRIVEN
+   After any Stripe confirm (payment, setup, fix-payment), the booking's
+   status/paymentStatus updates when Stripe's webhook lands (typically <2s).
+   Always re-fetch (GET /bookings/:id) instead of writing the expected state
+   client-side; add a short poll/refresh after returning from the Stripe sheet.
+
+D) LIST SCREEN
+   GET /bookings?page=1&limit=10&status=<tab>&keyword=<search>
+   meta.statuses gives per-status counts for the tab badges
+   (statusList: all, scheduled, requested, ongoing, expired, canceled, completed).
+
+
+================================================================================
+================================================================================
+BUSINESS — BOOKING SCREENS
+================================================================================
+================================================================================
+
+DATA SOURCES (business role JWT)
+--------------------------------------------------------------------------------
+List:    GET /bookings/business?page=1&limit=10&status=<tab>&keyword=<search>
+         (same status tabs; meta.statuses gives per-tab counts;
+          optional &userId=<customerId> and &date=YYYY-MM-DD filters)
+Detail:  GET /bookings/:id      (same endpoint as customer — ownership checked)
+Home:    GET /home              (booking stats, earnings, Stripe onboarding state)
+
+The booking object is identical to the customer one (status, paymentStatus,
+name/price/photos, date, slot, cancel{reason,by}, paymentInfo…) plus
+userInfo { _id, name, email, profileIcon } — the customer to display
+("Andrew Hock", requested-at from booking.createdAt).
+
+PAYMENT LABEL — BUSINESS PERSPECTIVE
+--------------------------------------------------------------------------------
+Use the same mapping as the customer side (authorized/vaulted/captured -> Paid,
+requires_payment_fix -> Pending). One nuance worth knowing: "Paid" on a
+scheduled booking means the money is SECURED (hold or card on file), not yet in
+the business's account — funds only move on Complete (capture) and are then
+paid out to their Stripe account minus the 5% platform fee.
+
+
+================================================================================
+BUSINESS BUTTON MATRIX
+================================================================================
+
+booking.status   paymentStatus              Buttons (top -> bottom)
+--------------   -------------              -----------------------
+requested        authorized|vaulted         [Accept Request] [Reject Request]
+scheduled        authorized|vaulted|        [Service Details] [Send Reminder]
+                 captured
+scheduled        requires_payment_fix       [Service Details] [Send Payment Reminder]
+ongoing          any                        [Service Details] [Complete]  (see note on
+                                                                Figma's "Start" below)
+completed        captured|partially_        [Service Details]             (see REVIEW
+                 captured                                                  GAP below)
+expired          --                         [Service Details]
+canceled         --                         [Service Details]
+                                            + "Cancellation Reason" card from
+                                              booking.cancel.reason (+ .by)
+
+
+================================================================================
+BUSINESS SCREEN-BY-SCREEN
+================================================================================
+
+B1) BOOKING REQUEST (status "requested") — accept/reject
+--------------------------------------------------------------------------------
+Payment is ALREADY SECURED before a request ever reaches the business (the
+backend only routes a booking to "requested" after the hold/vault succeeded),
+so accepting never depends on the customer paying.
+
+[Accept Request] -> PATCH /bookings/:id/accept        (empty body)
+    -> booking becomes "scheduled"; customer is notified automatically.
+    ERRORS: 400 "booking_slot_full"    -> another accepted booking filled the
+                                          slot's capacity meanwhile; refresh.
+            400 "booking_cannot_accept"-> no longer "requested" (expired or
+                                          withdrawn); refresh the list.
+
+[Reject Request] -> PATCH /bookings/:id/reject
+    body: { "reason": "<text>" }                       (reason optional)
+    -> booking "canceled", customer's hold released / card unlinked (they are
+       never charged), customer notified with the reason.
+
+Show a countdown if you like: requests auto-expire 24h after they arrive
+(booking.expiresAt); the backend also nudges the business when <6h remain.
+
+
+B2) VIEW BOOKING — SCHEDULED + Paid — [Send Reminder]
+--------------------------------------------------------------------------------
+[Send Reminder] -> POST /bookings/:id/reminder
+    body: { "type": "slot" }          ("start" exists too — "starting now" copy;
+                                       use it at/near slot start if you want)
+    -> pushes "Upcoming Session Reminder" to the customer.
+    Only works while status === "scheduled" (400 "booking_reminder_not_accepted"
+    otherwise). Returns 200 with data null even when the customer has booking
+    reminders muted — don't surface delivery state.
+
+
+B3) VIEW BOOKING — SCHEDULED + Payment Pending — [Send Payment Reminder]
+--------------------------------------------------------------------------------
+Show when paymentStatus === "requires_payment_fix" (the scheduled charge on the
+customer's saved card failed; they have a 24h grace window).
+[Send Payment Reminder] -> POST /bookings/:id/reminder
+    body: { "type": "payment" }
+    -> pushes "Please complete your payment…" to the customer.
+The customer fixes it from their side (fix-payment flow). If the grace window
+lapses, the backend cancels the booking and frees the slot automatically.
+
+
+B4) VIEW BOOKING — ONGOING — the money step   ⚠ FIGMA MISMATCH
+--------------------------------------------------------------------------------
+The Figma shows a [Start] button on an ONGOING booking. There is NO start
+endpoint — "scheduled" flips to "ongoing" automatically at slot start (cron,
+within ~5 min). If a manual "Start" is a real requirement, that's a backend
+change — raise it; don't wire the button to anything.
+
+What the business MUST have on an ongoing booking (and the Figma omits) is:
+[Complete] -> PATCH /bookings/:id/complete             (empty body)
+    -> THIS IS THE CAPTURE. Funds move from the customer's hold to the
+       platform, with the business share routed to their Stripe account.
+       Booking -> "completed", paymentStatus -> "captured"; customer notified;
+       earnings/stats on /home update.
+    Allowed on "ongoing" (or "scheduled" past its end time). Until Complete is
+    pressed, the business does not get paid — treat it as the primary CTA.
+    ERRORS: if the capture fails (card died since authorization), the response
+    still completes the booking; paymentStatus becomes "failed" and the
+    CUSTOMER is debt-locked until they settle — nothing for the business UI to
+    do beyond showing payment "Failed" until it flips to "captured" after
+    settlement.
+
+
+B5) COMPLETED — review buttons   ⚠ BACKEND GAP
+--------------------------------------------------------------------------------
+The Figma shows [Review] / [View Review] (and an Add Review modal) for the
+business — i.e. the business reviewing the CUSTOMER. The backend does not
+support this: POST /reviews is customer-role only and its scope is
+"service" | "package" — there is no business->customer review model.
+
+Until that exists (raise it as a feature):
+ - [Review] / Add Review modal: do not build for the business role.
+ - [View Review]: you CAN show the customer's review of the booked item:
+       GET /reviews?scope=<booking.scope>&targetId=<booking.target[0].id>
+   and match review.user._id === booking.userInfo._id.
+
+
+B6) EXPIRED / CANCELLED
+--------------------------------------------------------------------------------
+Same as customer side: [Service Details] only.
+Cancelled screen renders booking.cancel.reason; booking.cancel.by tells you
+whether the business or the customer cancelled ("You declined…" vs
+"Customer cancelled…"). Payment column shows "--" (released) — except a late
+customer cancellation, where "partially_captured"/"captured" means the business
+keeps the policy fee (it appears in earnings after payout).
+
+
+BUSINESS EDGE CASES
+--------------------------------------------------------------------------------
+A) STRIPE ONBOARDING GATE — a business whose Stripe onboarding is incomplete
+   (user.stripe.onboardingComplete false, from login response or /home) cannot
+   receive bookings: their catalog is hidden from customers entirely and
+   service/package/promotion creation returns 403 "stripe_onboarding_required".
+   /home returns stripe.onboardingUrl — surface a blocking "Finish Stripe
+   setup" banner that opens it in a browser, then re-check /home on return.
+B) Accept/Reject race: a "requested" booking can vanish (withdrawn by the
+   customer or auto-expired) — handle 400/404 from accept/reject by refreshing.
+C) Reminder buttons are fire-and-forget; consider client-side rate limiting
+   (the backend does not throttle repeated reminder taps).
+================================================================================

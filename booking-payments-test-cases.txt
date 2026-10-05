@@ -1,0 +1,212 @@
+================================================================================
+UPNEXT BOOKING PAYMENTS - TEST CASES (branch: booking-payments)
+================================================================================
+
+PREREQUISITES
+--------------------------------------------------------------------------------
+- npm run dev (Redis must be running for cron locks)
+- Stripe CLI forwarding webhooks:
+    stripe listen --forward-to localhost:5001/api/v1/stripe/webhook
+  Put the CLI's whsec_... value in STRIPE_WEBHOOK_SECRET in .env, restart server.
+- Checkout tester (real Stripe Elements form, confirms intents like the app):
+    http://127.0.0.1:4242  (scratchpad/stripe-checkout/serve.js)
+    Paste the clientSecret from the booking response, type a card, confirm.
+- Test cards (typed into the form; any future expiry / CVC / postal code):
+    4242 4242 4242 4242 -> always succeeds
+    4000 0025 0000 3155 -> requires 3D Secure challenge
+    4000 0000 0000 0341 -> vaults/attaches fine, all charges fail (debt lock test)
+    4000 0000 0000 9995 -> declined immediately
+- One customer account and one business account (business with active
+  BusinessProfile + Stripe Connect onboarding complete).
+- Time fork boundary: 96 hours (4 days) before slot start.
+
+
+TC-01  BRANCH A: AUTH HOLD AT BOOKING TIME (slot <= 4 days out)      [PASSED]
+--------------------------------------------------------------------------------
+Steps:
+ 1. As customer, POST /api/v1/app/bookings for a slot <= 96h away.
+ 2. Response contains { clientSecret, intentType: "payment" }.
+ 3. Confirm the PaymentIntent in the checkout tester with card 4242....
+ 4. Webhook payment_intent.amount_capturable_updated fires.
+Expected:
+ - Payment doc status "authorized"; booking paymentStatus "authorized".
+ - Funds show as uncaptured (hold) in Stripe dashboard.
+ - Booking routed after payment secured (see TC-03).
+
+TC-02  BRANCH B: SETUPINTENT VAULTING (slot > 4 days out)            [PASSED]
+--------------------------------------------------------------------------------
+Steps:
+ 1. As customer, POST /api/v1/app/bookings for a slot > 96h away.
+ 2. Response contains { clientSecret, intentType: "setup" }.
+ 3. Confirm the SetupIntent in the checkout tester with card 4242....
+ 4. Webhook setup_intent.succeeded fires.
+Expected:
+ - booking.stripePaymentMethodId stored, paymentStatus "vaulted".
+ - No PaymentIntent / no hold exists yet in Stripe.
+ - Booking routed after payment secured (see TC-03).
+
+TC-03  SCHEDULING ROUTING AFTER PAYMENT SECURED                      [PASSED]
+--------------------------------------------------------------------------------
+Cases:
+ a. Entity has autoSelect=true OR slot starts < 1h from now
+    -> booking status "scheduled", customer notified.
+ b. Otherwise -> stays "requested" (pending approval),
+    expiresAt = now + 24h, provider notified.
+Re-verify case a+b for a Branch B (vaulted) booking.                  [PASSED]
+
+TC-04  HORIZON CHARGE CRON (vaulted -> authorized at 4-day mark)     [PASSED]
+--------------------------------------------------------------------------------
+Steps:
+ 1. Have a vaulted booking (TC-02). Either wait until slot start <= 96h
+    or temporarily edit booking date / HORIZON_MS to bring it in range.
+ 2. Force-run runHorizonChargeCron (hourly at :15 normally).
+Expected:
+ - Off-session manual-capture PI created with the vaulted pm.
+ - On success: Payment doc created, booking paymentStatus "authorized".
+ - Hold visible in Stripe dashboard.
+
+TC-05  HORIZON CHARGE FAILURE -> REQUIRES PAYMENT FIX                [PASSED]
+--------------------------------------------------------------------------------
+Steps:
+ 1. Vault card 4000 0000 0000 0341 on a Branch B booking (checkout tester).
+ 2. Bring it inside the 96h horizon; run runHorizonChargeCron.
+Expected:
+ - Authorization fails; booking paymentStatus "requires_payment_fix".
+ - paymentFixDeadline = now + 24h; urgent notification sent to customer.
+
+TC-06  FIX-PAYMENT ENDPOINT                                          [PASSED]
+--------------------------------------------------------------------------------
+Steps:
+ 1. On a requires_payment_fix booking, POST /api/v1/app/bookings/:id/fix-payment
+    as the customer.
+ 2. Confirm the fresh SetupIntent in the checkout tester with card 4242....
+ 3. Webhook setup_intent.succeeded -> authorization retried.
+Expected:
+ - New pm stored, authorization succeeds, paymentStatus "authorized".
+
+TC-07  PAYMENT FIX GRACE EXPIRY CRON                                 [PASSED]
+--------------------------------------------------------------------------------
+Steps:
+ 1. requires_payment_fix booking with paymentFixDeadline in the past.
+ 2. Force-run runPaymentFixGraceCron (hourly at :30 normally).
+Expected:
+ - Booking status "canceled", slot released, both parties notified.
+
+TC-08  APPROVAL EXPIRY CRON                                          [PASSED]
+--------------------------------------------------------------------------------
+Steps:
+ 1. Pending-approval ("requested") booking; set expiresAt in the past.
+ 2. Force-run runApprovalExpiryCron (hourly at :00 normally).
+Expected:
+ - Booking status "expired".
+ - Branch A: PaymentIntent canceled (hold released). Branch B: pm unlinked.
+ - paymentStatus "released"; both parties notified.
+Also: nearing-expiry (within 6h) reminder sent to provider, counted in
+approvalReminder { sentCount, lastSentAt }, not spammed on every run.
+
+TC-09  STATUS TRANSITION CRON (every 5 min)                          [PASSED]
+--------------------------------------------------------------------------------
+Cases:
+ a. "scheduled" booking past slot start -> status "ongoing".
+ b. 30-min pre-session reminder: "scheduled" booking starting within 30 min
+    -> customer + business notified ONCE (preStartReminderSentAt set;
+    verify no duplicate on next cron run).
+ c. Abandoned checkout: booking with paymentStatus "pending" older than
+    30 min -> status "expired" (frees the held slot seat).
+
+TC-10  COMPLETION + CAPTURE                                          [PASSED*]
+--------------------------------------------------------------------------------
+Steps:
+ 1. As the business, PATCH /api/v1/app/bookings/:id/complete on an
+    "ongoing" booking (or scheduled past slot end).
+Expected:
+ - captureStripePayment called; funds captured in Stripe dashboard.
+ - Booking "completed" / paymentStatus "captured"; customer notified.
+ - Home stats (getBusinessStats) count the captured booking.
+ (*) Exercised in test mode via the TEMP TEST destination-charge hack --
+     re-verify once TEMP TEST is reverted (see CLEANUP).
+
+TC-11  DEBT LOCK ON CAPTURE FAILURE                                  [PASSED]
+--------------------------------------------------------------------------------
+Steps:
+ 1. Booking authorized via card 4000 0000 0000 0341 (vault + horizon
+    charge, or direct). Complete the booking so capture fails.
+Expected:
+ - Booking paymentStatus "failed".
+ - user.hasOutstandingDebt = true, outstandingBooking set, userCache busted.
+ - Creating a new booking as that customer -> 403 "outstanding_debt"
+   (debtMiddleware on booking-create and slots routes).
+
+TC-12  SETTLE OUTSTANDING DEBT ("Complete Payment")                  [PASSED]
+--------------------------------------------------------------------------------
+Steps:
+ 1. As the indebted customer, POST /api/v1/app/payment/booking/:bookingId
+    with a working payment method.
+Expected:
+ - Immediate-capture PI succeeds; hasOutstandingDebt cleared,
+   outstandingBooking cleared; booking creation unblocked.
+
+TC-13  CANCELLATION MATRIX                                           [PASSED]
+--------------------------------------------------------------------------------
+All cases driven by snapshot policy fields (refundPercentage, refundRules,
+howLateCanCancel) via resolveCancellationPayment:
+ a. Provider rejects (or approval expires)
+    -> cancel PI / unlink pm -> paymentStatus "released".
+ b. Customer cancels inside free window (refundPercentage 100)
+    -> cancel PI / unlink pm -> "released". Verify PI canceled in dashboard.
+ c. Customer cancels late (partial refund, e.g. refundPercentage 50)
+    -> partial capture of fee = finalPrice * (100 - refundPercentage) / 100
+    -> "partially_captured". Verify captured amount in dashboard.
+ d. Customer cancels non-refundable (refundPercentage 0)
+    -> full capture -> "captured".
+ e. Provider cancels -> cancel PI / unlink pm -> "released".
+ f. Vaulted-only booking (no PI yet) -> unlink pm only, nothing charged
+    -> "released".
+
+TC-14  STRIPE CONNECT ONBOARDING GATE                                [PASSED]
+       NOTE (prod deploy): account.updated events occur on CONNECTED
+       accounts — a dashboard endpoint listening to "your account" events
+       never receives them. Prod needs a second Connect endpoint (own
+       signing secret) + webhook route support for multiple secrets.
+       Case d verified via locally-signed event against the real handler.
+--------------------------------------------------------------------------------
+Cases:
+ a. Business with BusinessProfile status != "active"
+    -> POST /api/v1/app/services -> 403 "business_profile_incomplete".
+ b. Active profile but stripe.onboardingComplete false
+    -> 403 "stripe_onboarding_required".
+    (Note: check short-circuits to complete when STRIPE_SECRET_KEY contains
+    sk_test -- test against the gate logic directly or with a prod-like key.)
+ c. Both complete -> service creation succeeds.
+ d. account.updated webhook flips onboardingComplete when card_payments and
+    transfers capabilities are both "active"; userCache invalidated.
+
+TC-15  WEBHOOK EDGE CASES                                            [PENDING]
+--------------------------------------------------------------------------------
+ a. Webhook with unknown bookingId/metadata -> logged, no crash, 200 to Stripe.
+ b. Bad signature -> 400 (raw-body route mounted before express.json).
+ c. payment_intent.payment_failed during horizon window
+    -> requires_payment_fix + deadline + urgent notification (same as TC-05).
+
+
+CLEANUP BEFORE MERGE
+--------------------------------------------------------------------------------
+[x] TEMP TEST at paymentService.js -- RESOLVED 2026-07-16, superseded:
+    per the CashRide-style decision, destination charges are now ALWAYS on
+    (no NODE_ENV gate) for booking auth, horizon charge, and debt settlement,
+    tagged with transfer_group = bookingId. Gate removed permanently; readiness
+    is enforced by requiring real Stripe onboarding (acct_ + onboardingComplete).
+    checkOnboardingStatus now syncs flags both ways, busts userCache, recovers
+    stale account ids, and no longer leaks the raw Stripe account in /home.
+[x] Re-run TC-10 -- moot: TC-10 passed WITH destination charges, which is now
+    the permanent behavior. PASSED* asterisk can be read as PASSED.
+[ ] Deployed-server prerequisite: each business there must complete Stripe
+    test onboarding (hosted flow) so their acct_ has transfers active;
+    otherwise booking creation fails by design with a clear error.
+
+
+SUGGESTED EXECUTION ORDER
+--------------------------------------------------------------------------------
+TC-02 -> TC-03(B) -> TC-04 -> TC-05 -> TC-06 -> TC-07 -> TC-11 -> TC-12
+-> TC-13 -> TC-08 -> TC-09 -> TC-14 -> TC-15 -> CLEANUP
+================================================================================
