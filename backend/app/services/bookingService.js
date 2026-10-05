@@ -824,6 +824,7 @@ const getUserBookings = async ({ userId, business, page, limit, status, scope, d
 
   const bookings = rawBookings.map(({ paymentInfo, ...booking }) => ({
     ...booking,
+    source: booking.source,
     payment: paymentStatusLabel(paymentInfo?.status),
   }));
 
@@ -1033,6 +1034,7 @@ const getBillingHistory = async ({ businessId, page = 1, limit = 10, keyword, st
     },
     date: b.date,
     slot: b.slot,
+    source: b.source,
     paymentMethod: "Stripe",
     transactionId: b.transactionId,
     amount: b.paymentInfo?.amount ?? b.price,

@@ -49,6 +49,7 @@ const getAllBookings = async (req, res) => {
       date: booking.date,
       slot: booking.slot,
       status: booking.status,
+      source: booking.source,
       payment: paymentStatusLabel(booking.paymentInfo?.status),
       // The raw Payment.status alongside the label the tab filters speak —
       // "pending" covers both an authorization hold and an untouched card.
@@ -83,7 +84,11 @@ const getBooking = async (req, res) => {
   if (!validateParams(req, res, validationOptions)) return;
 
   try {
-    const { data: booking, error, status } = await getBookingById({
+    const {
+      data: booking,
+      error,
+      status,
+    } = await getBookingById({
       id: bookingId,
       userType: "admin",
       locale: req.language || req.user?.language,
@@ -118,6 +123,7 @@ const getBooking = async (req, res) => {
         _id: booking._id,
         bookingId: booking.bookingId,
         status: booking.status,
+        source: booking.source,
         // Which collection bookedService._id points at — "service" | "package".
         scope: booking.scope,
         coverImage: booking.photos?.[0] || null,
