@@ -25,7 +25,7 @@ async function searchByImage({ source, keyword = "", req }) {
   const entityReq = {
     user: req.user,
     language: req.language,
-    query: { ...req.query, keyword: undefined },
+    query: { ...naturalSearch.availability, ...req.query, keyword: undefined },
   };
 
   const [businesses, services, packages, portfolios] = await Promise.all([

@@ -30,6 +30,7 @@ const { safeKeyword, escapeRegExp } = require("@helperUtils/regexUtil");
 const { generateUniqueSlug } = require("@utils/slugUtil");
 const { suggestBusinessDescription } = require("@services/ai/features/suggestBusinessDescription");
 const { resolveNaturalSearch } = require("@services/ai/features/naturalSearch");
+const { applyAvailability } = require("@utils/availabilityHelper");
 const { getServices } = require("./serviceController");
 const { getPackages } = require("./packageController");
 const { getPortfolios } = require("./portfolioController");
@@ -1420,19 +1421,22 @@ const getAllBusinesses = async (req, res) => {
 
     if (keyword) {
       naturalSearch = await resolveNaturalSearch(keyword);
-      const ownerIds = await User.find({
-        $or: [{ name: { $in: naturalSearch.regexes } }, { email: { $in: naturalSearch.regexes } }],
-      }).distinct("_id");
-      businessFilter.$or = [
-        { _id: { $in: naturalSearch.businessIds } },
-        { businessName: { $in: naturalSearch.regexes } },
-        { "categories.name": { $in: naturalSearch.regexes } },
-        { "tags.name": { $in: naturalSearch.regexes } },
-        { description: { $in: naturalSearch.regexes } },
-        { skills: { $in: naturalSearch.regexes } },
-        ...(ownerIds.length ? [{ user: { $in: ownerIds } }] : []),
-      ];
-      searchReq = { ...req, query: { ...req.query, keyword: undefined } };
+      if (naturalSearch.hasText) {
+        const ownerIds = await User.find({
+          $or: [{ name: { $in: naturalSearch.regexes } }, { email: { $in: naturalSearch.regexes } }],
+        }).distinct("_id");
+        businessFilter.$or = [
+          { _id: { $in: naturalSearch.businessIds } },
+          { businessName: { $in: naturalSearch.regexes } },
+          { "categories.name": { $in: naturalSearch.regexes } },
+          { "tags.name": { $in: naturalSearch.regexes } },
+          { description: { $in: naturalSearch.regexes } },
+          { skills: { $in: naturalSearch.regexes } },
+          ...(ownerIds.length ? [{ user: { $in: ownerIds } }] : []),
+        ];
+      }
+      // Day/time phrases from the keyword apply as filters; explicit params win.
+      searchReq = { ...req, query: { ...naturalSearch.availability, ...req.query, keyword: undefined } };
     }
 
     const businessResult = await getBusinesses({ req: searchReq, filter: businessFilter });
@@ -1443,7 +1447,7 @@ const getAllBusinesses = async (req, res) => {
       const matchedBusinessIds = await BusinessProfile.distinct("_id", businessResult.filter);
       const entityReq = {
         ...req,
-        query: { ...req.query, keyword: undefined, status: "active" },
+        query: { ...naturalSearch.availability, ...req.query, keyword: undefined, status: "active" },
       };
       const [serviceResult, packageResult, portfolioResult] = await Promise.all([
         getServices({
@@ -1523,7 +1527,6 @@ const getBusinesses = async ({ req, filter, naturalSearch = null }) => {
       badges,
       status,
       location,
-      date,
       sortBy,
       lat,
       lng,
@@ -1536,7 +1539,7 @@ const getBusinesses = async ({ req, filter, naturalSearch = null }) => {
     } else {
       filter.status = "active";
     }
-    if (naturalSearch) {
+    if (naturalSearch?.hasText) {
       filter.$or = [
         { _id: { $in: naturalSearch.businessIds } },
         { businessName: { $in: naturalSearch.regexes } },
@@ -1545,7 +1548,7 @@ const getBusinesses = async ({ req, filter, naturalSearch = null }) => {
         { description: { $in: naturalSearch.regexes } },
         { skills: { $in: naturalSearch.regexes } },
       ];
-    } else if (keyword) {
+    } else if (keyword && !naturalSearch) {
       // Escaped and length-capped — the raw keyword goes into $regex, so an
       // unescaped "(" would otherwise be an invalid-regex 500 (and a ReDoS door).
       const kw = { $regex: safeKeyword(keyword), $options: "i" };
@@ -1575,11 +1578,6 @@ const getBusinesses = async ({ req, filter, naturalSearch = null }) => {
       // fields exist on BusinessProfile.location) — matches e.g. "Charlotte, NC"
       filter["location.address"] = { $regex: location, $options: "i" };
     }
-    if (date) {
-      // Business must be open on that date's weekday per its operatingHours
-      const dayOfWeek = moment(date, "YYYY-MM-DD", true).format("ddd");
-      filter.operatingHours = { $elemMatch: { dayOfWeek, isOpen: true } };
-    }
     if (minExperience != null && !isNaN(Number(minExperience))) {
       filter.yearsOfExperience = { $gte: Number(minExperience) };
     }
@@ -1600,6 +1598,9 @@ const getBusinesses = async ({ req, filter, naturalSearch = null }) => {
         }));
       }
     }
+    // `date` keeps its old meaning (open on that weekday) and now also combines
+    // with time/timeFrom/timeTo; added after badges, which assign filter.$and.
+    applyAvailability(filter, req, "business", { useDate: true });
     const pipeline = [
       ...businessHelperPipeline({
         filter,

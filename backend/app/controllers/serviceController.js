@@ -21,6 +21,7 @@ const {
   resolveServiceCategory,
   escapeRegex,
 } = require("@utils/serviceUtil");
+const { applyAvailability } = require("@utils/availabilityHelper");
 const ServiceCategory = require("@models/ServiceCategory");
 const { validateBadgeOptionRef } = require("@utils/badgeUtil");
 const { getCertificationBlockKey } = require("@utils/certificationUtil");
@@ -529,6 +530,7 @@ const getServices = async ({ filter = {}, req = {}, includeCounts = false }) => 
   if (userType === "business") {
     filter.business = new mongoose.Types.ObjectId(req.user.businessId);
   }
+  applyAvailability(filter, req, "offering");
 
   // Customers and guests only ever see active services — the status filter
   // below is forced, so an inactive one never surfaces, not even through a

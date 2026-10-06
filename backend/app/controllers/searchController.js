@@ -12,7 +12,7 @@ const TYPES = ["businesses", "services", "packages", "portfolios", "bookings"];
 
 // getServices/getPackages overwrite `filter.$or` for a categoryId filter, so the
 // text match is nested under $and to survive it.
-const scoped = ({ status, $or }) => ({ status, $and: [{ $or }] });
+const scoped = ({ status, $or }) => ({ status, ...($or && { $and: [{ $or }] }) });
 
 // GET /search?query=&imageUrl=&types=services,packages&page=&limit=
 // One text and/or image query fanned out to each entity's existing list
@@ -36,10 +36,12 @@ const search = async (req, res) => {
 
     const extraTerms = imageUrl ? await imageTermsFromUrl(imageUrl) : [];
     const naturalSearch = await resolveNaturalSearch(query, { extraTerms });
+    // Day/time phrases in the query ("open Monday") become availability params;
+    // explicit request params win.
     const entityReq = {
       user: req.user,
       language: req.language,
-      query: { ...req.query, keyword: undefined },
+      query: { ...naturalSearch.availability, ...req.query, keyword: undefined },
     };
 
     const jobs = {
@@ -57,6 +59,8 @@ const search = async (req, res) => {
       jobs.bookings = () => bookingService.getBusinessBookings({ ...bookingBase, businessId: req.user.businessId });
     }
 
+    // Portfolios carry no schedule, so an availability-only query has nothing to match them on.
+    if (!naturalSearch.hasText) delete jobs.portfolios;
     const names = Object.keys(jobs).filter((name) => types.has(name));
     const results = await Promise.all(names.map((name) => jobs[name]()));
 

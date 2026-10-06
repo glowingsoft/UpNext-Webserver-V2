@@ -14,6 +14,7 @@ const {
   generateWeeklySlots,
   resolveServiceCategory,
 } = require("@utils/serviceUtil");
+const { applyAvailability } = require("@utils/availabilityHelper");
 const { validateBadgeOptionRef } = require("@utils/badgeUtil");
 const { getCertificationBlockKey } = require("@utils/certificationUtil");
 const { getViewerBusinessId } = require("@utils/viewerUtil");
@@ -532,6 +533,7 @@ const getPackages = async ({ filter = {}, req = {}, includeCounts = false }) => 
   if (userType === "business") {
     filter.business = new mongoose.Types.ObjectId(req.user.businessId);
   }
+  applyAvailability(filter, req, "offering");
 
   // Customers and guests only ever see active packages — the status filter
   // below is forced, so an inactive one never surfaces, not even through a
