@@ -3,7 +3,8 @@ const { Services } = require("@models/Services");
 const Review = require("@models/Review");
 const BusinessProfile = require("@models/BusinessProfile");
 const { paginationPipeline, finalRes, packagePipeline, reviewStatsPipeline, bookableBusinessPipeline } = require("@utils/aggregationHelper");
-const { sendResponse, validateParams, cleanfiles } = require("@utils/responseUtil");
+const { sendResponse, validateParams, cleanfiles, fireAndForget } = require("@utils/responseUtil");
+const { indexEntityKeywords } = require("@services/ai/features/indexEntityKeywords");
 const mongoose = require("mongoose");
 const {
   validateServiceSlots,
@@ -165,6 +166,7 @@ const createPackage = async (req, res) => {
     });
 
     await newPackage.save();
+    fireAndForget(indexEntityKeywords(Packages, newPackage), "package search index");
 
     return sendResponse({
       res,
@@ -459,6 +461,10 @@ const updatePackage = async (req, res) => {
                 statusCode: 404,
                 translationKey: "package_not_found",
             });
+        }
+
+        if (["name", "description", "photos", "coverImage"].some((key) => key in updateData)) {
+            fireAndForget(indexEntityKeywords(Packages, updatedPackage), "package search index");
         }
 
         return sendResponse({

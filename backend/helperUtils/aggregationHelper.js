@@ -235,6 +235,7 @@ const servicePipeline = ({ keyword, userLat, userLng, locale, viewerBusinessId =
     // Before the stages below rewrite `business` into an object — canBook
     // compares against the raw ObjectId.
     ...canBookPipeline({ viewerBusinessId }),
+    { $unset: "search_keywords" },
     ...badgeOptionRefPipeline({ locale }),
     {
       $lookup: {
@@ -322,7 +323,7 @@ const servicePipeline = ({ keyword, userLat, userLng, locale, viewerBusinessId =
 };
 
 const packagePipeline = ({ keyword, userLat, userLng, locale, viewerBusinessId = null }) => {
-  const pipeline = [...canBookPipeline({ viewerBusinessId })];
+  const pipeline = [...canBookPipeline({ viewerBusinessId }), { $unset: "search_keywords" }];
 
   if (keyword) {
     pipeline.push({

@@ -9,7 +9,8 @@ const {
   bookableBusinessPipeline,
   nearestFirstStages,
 } = require("@utils/aggregationHelper");
-const { sendResponse, validateParams, cleanfiles } = require("@utils/responseUtil");
+const { sendResponse, validateParams, cleanfiles, fireAndForget } = require("@utils/responseUtil");
+const { indexEntityKeywords } = require("@services/ai/features/indexEntityKeywords");
 const { default: mongoose } = require("mongoose");
 const {
   validateServiceSlots,
@@ -159,6 +160,7 @@ const createService = async (req, res) => {
     });
 
     await newService.save();
+    fireAndForget(indexEntityKeywords(Services, newService), "service search index");
 
     return sendResponse({
       res,
@@ -446,6 +448,10 @@ const updateService = async (req, res) => {
         statusCode: 404,
         translationKey: "service_not_found", // Custom translation for service not found
       });
+    }
+
+    if (["name", "description", "photos"].some((key) => key in updateData)) {
+      fireAndForget(indexEntityKeywords(Services, updatedService), "service search index");
     }
 
     return sendResponse({
