@@ -2,25 +2,19 @@ const Portfolio = require("@models/Portfolios");
 const { Services } = require("@models/Services");
 const { Packages } = require("@models/Packages");
 const ServiceCategory = require("@models/ServiceCategory");
-const { getFullImageUrl } = require("@utils/imageHelper");
-const { cleanfiles } = require("@utils/responseUtil");
 const { expandPortfolioSearchQuery } = require("./expandPortfolioSearch");
-const { tagPortfolioImage } = require("./tagPortfolioMedia");
 
 const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const NO_TERMS = { technique: [], style: [], color: [], keywords: [] };
 
-// `imageUrl` (an upload key/URL from our own bucket — cleanfiles keeps only the
-// key, so nothing arbitrary is ever fetched) is described by the vision model
-// and its tags join the text terms, so one search covers both inputs.
-async function resolveNaturalSearch(query, { imageUrl } = {}) {
+// `extraTerms` are pre-resolved search terms from another source (e.g. the
+// image-search tags) that join the text terms; this module knows nothing about
+// where they came from.
+async function resolveNaturalSearch(query, { extraTerms = [] } = {}) {
   const queryText = String(query || "")
     .trim()
     .slice(0, 100);
-  const [expanded, imageTags] = await Promise.all([
-    queryText ? expandPortfolioSearchQuery(queryText) : NO_TERMS,
-    imageUrl ? tagPortfolioImage(getFullImageUrl(cleanfiles(imageUrl))) : NO_TERMS,
-  ]);
+  const expanded = queryText ? await expandPortfolioSearchQuery(queryText) : NO_TERMS;
   const terms = [
     ...new Set(
       [
@@ -28,9 +22,7 @@ async function resolveNaturalSearch(query, { imageUrl } = {}) {
         ...expanded.style,
         ...expanded.color,
         ...expanded.keywords,
-        ...imageTags.technique,
-        ...imageTags.style,
-        ...imageTags.color,
+        ...extraTerms,
         queryText,
       ].filter(Boolean),
     ),

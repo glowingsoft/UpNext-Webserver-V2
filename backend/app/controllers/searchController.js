@@ -2,6 +2,7 @@ const { sendResponse } = require("@utils/responseUtil");
 const { safeKeyword } = require("@helperUtils/regexUtil");
 const { resolveNaturalSearch } = require("@services/ai/features/naturalSearch");
 const bookingService = require("../services/bookingService");
+const { imageTermsFromUrl } = require("../services/imageSearch/imageAnalysis");
 const { getBusinesses } = require("./userController");
 const { getServices } = require("./serviceController");
 const { getPackages } = require("./packageController");
@@ -33,7 +34,8 @@ const search = async (req, res) => {
     const types = new Set(requested.length ? requested : TYPES);
     const { userType } = req.user;
 
-    const naturalSearch = await resolveNaturalSearch(query, { imageUrl });
+    const extraTerms = imageUrl ? await imageTermsFromUrl(imageUrl) : [];
+    const naturalSearch = await resolveNaturalSearch(query, { extraTerms });
     const entityReq = {
       user: req.user,
       language: req.language,
