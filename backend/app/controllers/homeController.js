@@ -97,10 +97,14 @@ const getCustomerHome = async ({ req }) => {
       req.query?.lat != null && req.query?.lng != null ? { sortBy: req.query.sortBy || "distance_near_far" } : {};
     const keyword = req.query.keyword?.trim();
     const naturalSearch = keyword ? await resolveNaturalSearch(keyword) : null;
+    // Day/time phrases in the keyword ("open Monday") apply as availability filters.
+    const searchReq = naturalSearch?.availability
+      ? { ...req, query: { ...naturalSearch.availability, ...req.query } }
+      : req;
 
     // 1. First fetch only 5 businesses
     const businessReq = getBusinesses({
-      req: getReq(req, {
+      req: getReq(searchReq, {
         ...nearestFirst,
         limit: 5,
         page: 1,
@@ -140,12 +144,12 @@ const getCustomerHome = async ({ req }) => {
 
     // 5. Fetch services belonging to those businesses
     const servicesReq = getServices({
-      req: getReq(req, {
+      req: getReq(searchReq, {
         ...nearestFirst,
         keyword: undefined,
       }),
       filter: {
-        ...(naturalSearch
+        ...(naturalSearch?.hasText
           ? {
               $or: [
                 { business: { $in: naturalSearch.businessIds } },
@@ -157,7 +161,7 @@ const getCustomerHome = async ({ req }) => {
       },
     });
 
-    const portfolioReq = naturalSearch
+    const portfolioReq = naturalSearch?.hasText
       ? getPortfolios({ filter: naturalSearch.portfolioFilter, req: { query: { page: 1, limit: 5 } } })
       : Promise.resolve({ data: [] });
 

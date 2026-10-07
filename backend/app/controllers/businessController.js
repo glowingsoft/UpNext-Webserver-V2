@@ -176,6 +176,7 @@ const resolvePublicBusinessProfile = async ({ req, res, businessId }) => {
             category: { _id: "$category._id", name: "$category.name" },
             preferredServiceType: 1,
             slots: 1,
+            operatingHours: 1,
             howLateCanBook: 1,
             howLateCanCancel: 1,
             refundPercentage: 1,

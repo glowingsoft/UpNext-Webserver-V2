@@ -3,7 +3,8 @@ const { Services } = require("@models/Services");
 const Review = require("@models/Review");
 const BusinessProfile = require("@models/BusinessProfile");
 const { paginationPipeline, finalRes, packagePipeline, reviewStatsPipeline, bookableBusinessPipeline } = require("@utils/aggregationHelper");
-const { sendResponse, validateParams, cleanfiles } = require("@utils/responseUtil");
+const { sendResponse, validateParams, cleanfiles, fireAndForget } = require("@utils/responseUtil");
+const { indexEntityKeywords } = require("@services/ai/features/indexEntityKeywords");
 const mongoose = require("mongoose");
 const {
   validateServiceSlots,
@@ -13,6 +14,7 @@ const {
   generateWeeklySlots,
   resolveServiceCategory,
 } = require("@utils/serviceUtil");
+const { applyAvailability } = require("@utils/availabilityHelper");
 const { validateBadgeOptionRef } = require("@utils/badgeUtil");
 const { getCertificationBlockKey } = require("@utils/certificationUtil");
 const { getViewerBusinessId } = require("@utils/viewerUtil");
@@ -165,6 +167,7 @@ const createPackage = async (req, res) => {
     });
 
     await newPackage.save();
+    fireAndForget(indexEntityKeywords(Packages, newPackage), "package search index");
 
     return sendResponse({
       res,
@@ -461,6 +464,10 @@ const updatePackage = async (req, res) => {
             });
         }
 
+        if (["name", "description", "photos", "coverImage"].some((key) => key in updateData)) {
+            fireAndForget(indexEntityKeywords(Packages, updatedPackage), "package search index");
+        }
+
         return sendResponse({
             res,
             statusCode: 200,
@@ -526,6 +533,7 @@ const getPackages = async ({ filter = {}, req = {}, includeCounts = false }) => 
   if (userType === "business") {
     filter.business = new mongoose.Types.ObjectId(req.user.businessId);
   }
+  applyAvailability(filter, req, "offering");
 
   // Customers and guests only ever see active packages — the status filter
   // below is forced, so an inactive one never surfaces, not even through a

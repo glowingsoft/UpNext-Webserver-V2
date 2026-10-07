@@ -49,6 +49,8 @@ const baseFields = {
   coverImage: { type: String, default: "noimg.png", trim: true },
   // ── Photos
   photos: [{ type: String }], // array of URLs / S3 keys
+  // Name/description/photo-tag tokens used by unified search (see indexEntityKeywords)
+  search_keywords: { type: [String], default: [], select: false },
 
   price: {
     type: Number,

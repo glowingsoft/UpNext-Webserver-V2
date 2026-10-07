@@ -17,7 +17,8 @@ const portfolioRoutes = require("./portfolioRoutes");
 const helpCenterRoutes = require("./helpCenterRoutes");
 const businessRoutes = require("./businessRoutes");
 const publicRoutes = require("./publicRoutes");
-
+const searchRoutes = require("./searchRoutes");
+const imageSearchRoutes = require("./imageSearchRoutes");
 
 router.use("/public", publicRoutes);
 router.use("/support", supportRoutes);
@@ -34,6 +35,8 @@ router.use("/bookings", bookingRoutes);
 router.use("/reviews", reviewRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/portfolios", portfolioRoutes);
+router.use("/search", searchRoutes);
+router.use("/image-search", imageSearchRoutes);
 router.use("/businesses", businessRoutes);
 router.use("/conversations",require("../../commonModules/chatModule/routes/messageRoutes"));
 router.use("/webrtc/ice-servers", require("../../../webrtc/icServersRoutes"))

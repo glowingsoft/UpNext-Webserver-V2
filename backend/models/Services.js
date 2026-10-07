@@ -47,6 +47,8 @@ const baseServiceFields = {
 
   // ── Photos
   photos: [{ type: String }], // array of URLs / S3 keys
+  // Name/description/photo-tag tokens used by unified search (see indexEntityKeywords)
+  search_keywords: { type: [String], default: [], select: false },
 
   status: {
     type: String,

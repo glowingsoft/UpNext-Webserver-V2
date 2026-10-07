@@ -3,20 +3,44 @@ const { Services } = require("@models/Services");
 const { Packages } = require("@models/Packages");
 const ServiceCategory = require("@models/ServiceCategory");
 const { expandPortfolioSearchQuery } = require("./expandPortfolioSearch");
+const { extractAvailability } = require("@utils/availabilityHelper");
 
 const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const NO_TERMS = { technique: [], style: [], color: [], keywords: [] };
 
-async function resolveNaturalSearch(query) {
-  const queryText = String(query || "")
-    .trim()
-    .slice(0, 100);
-  const expanded = await expandPortfolioSearchQuery(queryText);
+// `extraTerms` are pre-resolved search terms from another source (e.g. the
+// image-search tags) that join the text terms; this module knows nothing about
+// where they came from.
+//
+// Day/time phrases in the query ("open Monday", "this weekend", "at 2pm") are
+// pulled out first: they come back as `availability` — request-param shaped, to
+// be spread under the caller's query so the list functions filter on it — and
+// never reach the text match. A query that was only such a phrase has no text
+// left (`hasText: false`): the filters then match every active entity and
+// `businessIds` is empty, so callers must skip the text clause for businesses.
+async function resolveNaturalSearch(query, { extraTerms = [] } = {}) {
+  const { text, availability } = extractAvailability(query);
+  const queryText = text.trim().slice(0, 100);
+  const expanded = queryText ? await expandPortfolioSearchQuery(queryText) : NO_TERMS;
   const terms = [
     ...new Set(
-      [...expanded.technique, ...expanded.style, ...expanded.color, ...expanded.keywords, queryText].filter(Boolean),
+      [...expanded.technique, ...expanded.style, ...expanded.color, ...expanded.keywords, ...extraTerms, queryText]
+        .filter(Boolean)
+        .flatMap((term) => term.toLowerCase().split(/\s+/)),
     ),
   ];
   const regexes = terms.map((term) => new RegExp(escapeRegex(term), "i"));
+  if (!regexes.length) {
+    return {
+      regexes,
+      hasText: false,
+      availability,
+      portfolioFilter: {},
+      serviceFilter: { status: "active" },
+      packageFilter: { status: "active" },
+      businessIds: [],
+    };
+  }
   const portfolioFilter = {
     $or: [
       { name: { $in: regexes } },
@@ -35,24 +59,18 @@ async function resolveNaturalSearch(query) {
       $or: [{ name: { $in: regexes } }, { description: { $in: regexes } }],
     }),
   ]);
-  const serviceFilter = {
+  const catalogFilter = {
     status: "active",
     $or: [
       { name: { $in: regexes } },
       { description: { $in: regexes } },
+      { search_keywords: { $in: regexes } },
       { category: { $in: serviceCategoryIds } },
       { subcategory: { $in: serviceCategoryIds } },
     ],
   };
-  const packageFilter = {
-    status: "active",
-    $or: [
-      { name: { $in: regexes } },
-      { description: { $in: regexes } },
-      { category: { $in: serviceCategoryIds } },
-      { subcategory: { $in: serviceCategoryIds } },
-    ],
-  };
+  const serviceFilter = catalogFilter;
+  const packageFilter = catalogFilter;
   const [serviceBusinessIds, packageBusinessIds] = await Promise.all([
     Services.distinct("business", serviceFilter),
     Packages.distinct("business", packageFilter),
@@ -60,6 +78,8 @@ async function resolveNaturalSearch(query) {
 
   return {
     regexes,
+    hasText: true,
+    availability,
     portfolioFilter,
     serviceFilter,
     packageFilter,

@@ -24,7 +24,8 @@
     "seed:badges": "node scripts/importBadges.js",
     "migrate:operating-hours": "node scripts/migrateOperatingHours.js",
     "migrate:service-slots": "node scripts/migrateServiceSlots.js",
-    "migrate:business-slugs": "node scripts/backfillBusinessSlugs.js"
+    "migrate:business-slugs": "node scripts/backfillBusinessSlugs.js",
+    "backfill:search": "node scripts/backfillSearchKeywords.js"
   },
   "keywords": [],
   "author": "",

@@ -9,7 +9,8 @@ const {
   bookableBusinessPipeline,
   nearestFirstStages,
 } = require("@utils/aggregationHelper");
-const { sendResponse, validateParams, cleanfiles } = require("@utils/responseUtil");
+const { sendResponse, validateParams, cleanfiles, fireAndForget } = require("@utils/responseUtil");
+const { indexEntityKeywords } = require("@services/ai/features/indexEntityKeywords");
 const { default: mongoose } = require("mongoose");
 const {
   validateServiceSlots,
@@ -20,6 +21,7 @@ const {
   resolveServiceCategory,
   escapeRegex,
 } = require("@utils/serviceUtil");
+const { applyAvailability } = require("@utils/availabilityHelper");
 const ServiceCategory = require("@models/ServiceCategory");
 const { validateBadgeOptionRef } = require("@utils/badgeUtil");
 const { getCertificationBlockKey } = require("@utils/certificationUtil");
@@ -159,6 +161,7 @@ const createService = async (req, res) => {
     });
 
     await newService.save();
+    fireAndForget(indexEntityKeywords(Services, newService), "service search index");
 
     return sendResponse({
       res,
@@ -448,6 +451,10 @@ const updateService = async (req, res) => {
       });
     }
 
+    if (["name", "description", "photos"].some((key) => key in updateData)) {
+      fireAndForget(indexEntityKeywords(Services, updatedService), "service search index");
+    }
+
     return sendResponse({
       res,
       statusCode: 200,
@@ -523,6 +530,7 @@ const getServices = async ({ filter = {}, req = {}, includeCounts = false }) => 
   if (userType === "business") {
     filter.business = new mongoose.Types.ObjectId(req.user.businessId);
   }
+  applyAvailability(filter, req, "offering");
 
   // Customers and guests only ever see active services — the status filter
   // below is forced, so an inactive one never surfaces, not even through a
