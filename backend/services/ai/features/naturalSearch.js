@@ -24,14 +24,9 @@ async function resolveNaturalSearch(query, { extraTerms = [] } = {}) {
   const expanded = queryText ? await expandPortfolioSearchQuery(queryText) : NO_TERMS;
   const terms = [
     ...new Set(
-      [
-        ...expanded.technique,
-        ...expanded.style,
-        ...expanded.color,
-        ...expanded.keywords,
-        ...extraTerms,
-        queryText,
-      ].filter(Boolean),
+      [...expanded.technique, ...expanded.style, ...expanded.color, ...expanded.keywords, ...extraTerms, queryText]
+        .filter(Boolean)
+        .flatMap((term) => term.toLowerCase().split(/\s+/)),
     ),
   ];
   const regexes = terms.map((term) => new RegExp(escapeRegex(term), "i"));
@@ -46,7 +41,6 @@ async function resolveNaturalSearch(query, { extraTerms = [] } = {}) {
       businessIds: [],
     };
   }
-
   const portfolioFilter = {
     $or: [
       { name: { $in: regexes } },

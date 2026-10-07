@@ -173,7 +173,7 @@ const resolvePublicBusinessProfile = async ({ req, res, businessId }) => {
             // durationMins don't break.
             sessionSlotMins: 1,
             gapBetweenSlotMins: 1,
-            category: { _id: "$serviceCategory._id", name: "$serviceCategory.name" },
+            category: { _id: "$category._id", name: "$category.name" },
             preferredServiceType: 1,
             slots: 1,
             operatingHours: 1,

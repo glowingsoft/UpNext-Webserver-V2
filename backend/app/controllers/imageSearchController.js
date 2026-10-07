@@ -10,8 +10,6 @@ const KEYWORD_MAX = 100;
 const searchByImage = async (req, res) => {
   try {
     const source = await resolveImageSource({ file: req.file, imageUrl: req.body?.imageUrl });
-
-    console.log(source);
     const keyword = String(req.body?.keyword || req.query.keyword || "")
       .trim()
       .slice(0, KEYWORD_MAX);
