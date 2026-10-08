@@ -131,7 +131,7 @@ dist
 .env.qa
 .env.prod
 .env.dev
-uploads*
+uploads*/
 secretAssets/*
 /.idea
 branch_structure.json
