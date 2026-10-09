@@ -15,7 +15,6 @@ const searchByImage = async (req, res) => {
       .slice(0, KEYWORD_MAX);
 
     const { data, meta, imageAnalysis } = await imageSearchService.searchByImage({ source, keyword, req });
-    console.log({ data, meta, imageAnalysis });
     return sendResponse({
       res,
       statusCode: 200,

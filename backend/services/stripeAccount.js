@@ -214,6 +214,30 @@ async function getConnectBalance(accountId) {
   }
 }
 
+/**
+ * When pending funds actually clear: Stripe stamps every pending balance
+ * transaction with `available_on`, so the earliest/latest of those give a real
+ * release window instead of a fixed "2-3 days" guess.
+ */
+async function getPendingReleaseWindow(accountId) {
+  try {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const txns = await stripe.balanceTransactions.list(
+      { available_on: { gt: nowSec }, limit: 100 },
+      { stripeAccount: accountId },
+    );
+    const times = (txns.data || []).map((t) => t.available_on).filter(Boolean);
+    if (!times.length) return null;
+    return {
+      earliest: new Date(Math.min(...times) * 1000),
+      latest: new Date(Math.max(...times) * 1000),
+    };
+  } catch (err) {
+    console.error("getPendingReleaseWindow error:", err.message);
+    return null;
+  }
+}
+
 async function getOrCreateCustomer(user) {
   try {
     // 1. Already have an id on record -> trust but verify
@@ -401,7 +425,7 @@ module.exports = {
   checkOnboardingStatus,
   syncOnboardingStatusByAccountId,
   getConnectBalance,
-  getOrCreateCustomer,
+  getPendingReleaseWindow,
   attachPaymentMethod,
   detachPaymentMethod,
   listPaymentMethods,

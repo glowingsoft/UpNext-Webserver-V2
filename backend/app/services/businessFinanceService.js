@@ -6,13 +6,22 @@ const { getBusinessStats } = require("../controllers/homeController");
 const { getBillingHistory } = require("./bookingService");
 const {
   getConnectBalance,
-  listExternalAccounts,
+  getPendingReleaseWindow,
   addExternalAccount,
   removeExternalAccount,
   createPayout,
 } = require("@services/stripeAccount");
 
 const toMinor = (amount) => Math.round((amount || 0) * 100);
+
+// Whole days from now until a release date (min 1 while still pending)
+const daysUntil = (date) => Math.max(1, Math.ceil((date.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+const buildPayoutEta = (window) => {
+  if (!window) return null;
+  const from = daysUntil(window.earliest);
+  const to = daysUntil(window.latest);
+  return from === to ? String(from) : `${from}-${to}`;
+};
 const PLATFORM_FEE_RATE = 0.05;
 const capturedMatch = { paymentStatus: { $in: ["captured", "partially_captured"] } };
 const bookingAmount = { $ifNull: [{ $arrayElemAt: ["$target.price", 0] }, 0] };
@@ -143,10 +152,11 @@ const getRevenue = async ({ user, range }) => {
 
   const { range: appliedRange, now, start, prevStart } = getRangeBounds(range);
 
-  const [currentGross, previousGross, balance, perClientHistory] = await Promise.all([
+  const [currentGross, previousGross, balance, releaseWindow, perClientHistory] = await Promise.all([
     sumBookingAmount(businessObjId, start, now),
     sumBookingAmount(businessObjId, prevStart, start),
     accountId ? getConnectBalance(accountId).catch(() => null) : Promise.resolve(null),
+    accountId ? getPendingReleaseWindow(accountId) : Promise.resolve(null),
     getBillingHistory({
       businessId: user.businessId,
       page: 1,
@@ -179,8 +189,10 @@ const getRevenue = async ({ user, range }) => {
     pendingPayout: {
       amountMinor: toMinor(balance?.pending),
       currency: balanceCurrency,
-      status: "processing",
-      etaBusinessDays: "2-3",
+      status: balance?.pending > 0 ? "processing" : "none",
+      etaBusinessDays: buildPayoutEta(releaseWindow),
+      earliestAvailableOn: releaseWindow?.earliest || null,
+      latestAvailableOn: releaseWindow?.latest || null,
     },
     perClient: (perClientHistory.data || []).map((row) => ({
       customer: row.customer,

@@ -18,6 +18,7 @@ const { getOutstandingDebt } = require("../services/paymentService");
 const { resolveBadgeOptionName } = require("@utils/badgeUtil");
 const { getPortfolios } = require("./portfolioController");
 const { resolveNaturalSearch } = require("@services/ai/features/naturalSearch");
+const Traffic = require("@models/Traffic");
 
 const { default: mongoose } = require("mongoose");
 
@@ -273,12 +274,20 @@ const getBusinessHome = async ({ req }) => {
     const businessProfileReq = getBusinesses({ filter: { _id: businessId } });
     const getBookingStatsReq = Bookings.countDocuments({ business: businessId, date: { $gte: new Date() } });
     const statsReq = getBusinessStats(user);
+    // Today's schedule: bookings dated today in the business's timezone
+    // (Booking.date is UTC midnight of the calendar day), minus dead ones.
+    const todayLabel = moment.tz(new Date(), timezone).format("YYYY-MM-DD");
     const bookingReq = getBusinessBookings({
       businessId,
       page: 1,
       limit: 5,
       locale: req.language || req.user?.language,
       keyword: req.query.keyword || "",
+      dateRange: {
+        start: moment.utc(todayLabel).startOf("day").toDate(),
+        end: moment.utc(todayLabel).endOf("day").toDate(),
+      },
+      excludeStatuses: ["canceled", "expired"],
     });
     // businessHelperPipeline trims to list-card fields (it also feeds public
     // listings), so owner-only profile fields are fetched separately
@@ -289,7 +298,7 @@ const getBusinessHome = async ({ req }) => {
     // business's services/packages — same match as reviews?scope=business
     const ratingReq = Review.aggregate(reviewStatsPipeline({ business: businessObjId }));
 
-    const summaryReq = getDashboardSummary({ businessObjId, timezone, currency });
+    const summaryReq = getDashboardSummary({ businessObjId, userId: user._id, timezone, currency });
     const revenueGrowthReq = getRevenueGrowth({ businessObjId, currency, year: req.query.year });
     const topCustomersReq = getTopCustomers({ businessObjId, currency });
     const recentReviewsReq = getRecentReviews({ businessObjId });
@@ -297,7 +306,7 @@ const getBusinessHome = async ({ req }) => {
 
     const [
       bookings,
-      toadyCount,
+      todayCount,
       stats,
       profile,
       certDoc,
@@ -377,7 +386,7 @@ const getBusinessHome = async ({ req }) => {
       },
 
       bookings: bookings?.data || [],
-      toadyCount: toadyCount || 0,
+      todayCount: todayCount || 0,
       stats: stats || { avgRating: 0, grossRevenue: 0, netEarned: 0, withdrawable: 0, performanceChart: [] },
       profile: profile?.data[0]
         ? {
@@ -404,7 +413,7 @@ const getBusinessHome = async ({ req }) => {
 // profile-view-tracking model exists) — they're returned zeroed out rather
 // than omitted, so the response shape stays stable for clients already
 // reading these keys.
-const getDashboardSummary = async ({ businessObjId, timezone, currency }) => {
+const getDashboardSummary = async ({ businessObjId, userId, timezone, currency }) => {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
@@ -415,10 +424,15 @@ const getDashboardSummary = async ({ businessObjId, timezone, currency }) => {
   const inTz = () => moment.tz(now, timezone);
   const lastWeekStart = inTz().subtract(1, "week").startOf("week").toDate();
   const lastWeekEnd = inTz().subtract(1, "week").endOf("week").toDate();
-  const todayStart = inTz().startOf("day").toDate();
-  const todayEnd = inTz().endOf("day").toDate();
-  const yesterdayStart = inTz().subtract(1, "day").startOf("day").toDate();
-  const yesterdayEnd = inTz().subtract(1, "day").endOf("day").toDate();
+  // Booking.date is stored as UTC midnight of the calendar day, so "today" must
+  // be the business-local calendar date pinned to UTC — a tz-local day window
+  // straddles two UTC midnights and pulls in the neighbouring day's bookings.
+  const utcDay = (offsetDays) => {
+    const day = inTz().add(offsetDays, "day").format("YYYY-MM-DD");
+    return { start: moment.utc(day).startOf("day").toDate(), end: moment.utc(day).endOf("day").toDate() };
+  };
+  const { start: todayStart, end: todayEnd } = utcDay(0);
+  const { start: yesterdayStart, end: yesterdayEnd } = utcDay(-1);
   // Same revenue basis as getRevenueGrowth/getBusinessStats: money the customer
   // was actually charged, taken from the booking's own price snapshot.
   const capturedMatch = { paymentStatus: { $in: ["captured", "partially_captured"] } };
@@ -442,6 +456,7 @@ const getDashboardSummary = async ({ businessObjId, timezone, currency }) => {
     lastWeekEarningAgg,
     todayBookingsCount,
     yesterdayBookingsCount,
+    traffic,
   ] = await Promise.all([
     Bookings.aggregate([
       { $match: { business: businessObjId } },
@@ -477,6 +492,7 @@ const getDashboardSummary = async ({ businessObjId, timezone, currency }) => {
     // week for today counts today.
     Bookings.countDocuments({ business: businessObjId, date: { $gte: todayStart, $lte: todayEnd } }),
     Bookings.countDocuments({ business: businessObjId, date: { $gte: yesterdayStart, $lte: yesterdayEnd } }),
+    Traffic.findOne({ profileId: businessObjId }).select("totalVisits").lean(),
   ]);
 
   const customers = customerAgg[0] || { count: 0, newThisMonth: 0 };
@@ -523,7 +539,7 @@ const getDashboardSummary = async ({ businessObjId, timezone, currency }) => {
       completionRate: totalBookings > 0 ? Math.round((completedBookings / totalBookings) * 100) : 0,
       period: "all_time",
     },
-    profileViews: { count: 0, newVisitors: 0, period: "current_month" },
+    profileViews: { count: traffic?.totalVisits || 0, newVisitors: 0, period: "all_time" },
     pendingRequests: { count: pendingRequestsCount, newThisWeek: pendingRequestsNewThisWeek, period: "current_week" },
   };
 };
