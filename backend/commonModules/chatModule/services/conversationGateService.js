@@ -3,6 +3,7 @@ const { User } = require("../../../models/UserModel");
 const BusinessProfile = require("../../../models/BusinessProfile");
 const Booking = require("../../../models/Bookings");
 const Conversation = require("../models/Conversation");
+const { UserProfile } = require("@models/UserProfile");
 
 // A booking in any of these states no longer counts as "active" for chat purposes.
 const TERMINAL_BOOKING_STATUSES = ["completed", "canceled", "expired"];
