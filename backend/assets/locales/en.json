@@ -362,6 +362,9 @@
   "certifications_pending_approval": "Your certifications are still under review. You can create services and packages once an admin approves them",
   "certifications_not_approved": "Your certifications were not approved. Please resubmit them for review before creating services or packages",
   "business_profile_not_found": "Business profile not found",
+  "traffic_recorded": "Visit recorded",
+  "traffic_record_error": "Failed to record visit",
+  "traffic_fetched": "Traffic fetched successfully",
 
   "portfolio_created": "Portfolio created successfully",
   "portfolio_creation_error": "An error occurred while creating the portfolio",

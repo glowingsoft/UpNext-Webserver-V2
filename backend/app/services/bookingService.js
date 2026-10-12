@@ -836,14 +836,30 @@ const getUserBookings = async ({ userId, business, page, limit, status, scope, d
   return { data: bookings, meta };
 };
 
-const getBusinessBookings = async ({ businessId, page, limit, status, scope, date, userId, keyword, locale }) => {
+const getBusinessBookings = async ({
+  businessId,
+  page,
+  limit,
+  status,
+  excludeStatuses,
+  scope,
+  date,
+  dateRange,
+  userId,
+  keyword,
+  locale,
+}) => {
   const filter = { business: new mongoose.Types.ObjectId(String(businessId)) };
   if (status) filter.status = status;
+  else if (excludeStatuses?.length) filter.status = { $nin: excludeStatuses };
   if (scope) filter.scope = scope;
   if (userId && mongoose.Types.ObjectId.isValid(userId)) {
     filter.user = new mongoose.Types.ObjectId(String(userId));
   }
-  if (date) {
+  console.log("Business bookings dateRange filter:", dateRange, "date:", date);
+  if (dateRange) {
+    filter.date = { $gte: dateRange.start, $lte: dateRange.end };
+  } else if (date) {
     const { start, end } = dateRangeForDay(new Date(date));
     filter.date = { $gte: start, $lte: end };
   }

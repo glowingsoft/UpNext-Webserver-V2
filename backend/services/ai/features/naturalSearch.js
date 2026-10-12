@@ -8,6 +8,40 @@ const { extractAvailability } = require("@utils/availabilityHelper");
 const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const NO_TERMS = { technique: [], style: [], color: [], keywords: [] };
 
+const STOPWORDS = new Set([
+  "a", "an", "and", "the", "of", "with", "in", "on", "at", "for", "to", "is", "are", "very", "her", "his", "their",
+  "woman", "man", "person", "image", "photo", "picture", "showing", "wearing", "has", "have", "that", "this", "its",
+]);
+
+// Light plural stripping so "lashes"/"waves"/"extensions" match their singular
+// stored forms; the regexes are unanchored so the stem still hits the plural.
+const stem = (word) => {
+  if (word.length > 4 && word.endsWith("ies")) return `${word.slice(0, -3)}y`;
+  if (word.length > 4 && word.endsWith("es")) return word.slice(0, -2);
+  if (word.length > 3 && word.endsWith("s") && !word.endsWith("ss")) return word.slice(0, -1);
+  return word;
+};
+
+// "eyelashes" must hit "eye lashes" and vice versa: allow an optional
+// space/hyphen between any two letters of a word (compact term, short only).
+const flexiblePattern = (word) =>
+  word.length >= 5 && word.length <= 20
+    ? word.split("").map(escapeRegex).join("[\\s-]?")
+    : escapeRegex(word);
+
+// One search term -> its word list plus the joined compound, so
+// "eye lashes" also searches "eyelashes".
+const termVariants = (term) => {
+  const words = term
+    .toLowerCase()
+    .split(/[\s-]+/)
+    .map((w) => w.replace(/[^\p{L}\p{N}]/gu, ""))
+    .filter((w) => w && !STOPWORDS.has(w));
+  const variants = words.map(stem);
+  if (words.length > 1 && words.length <= 3) variants.push(stem(words.join("")));
+  return variants.filter((w) => w.length > 1);
+};
+
 // `extraTerms` are pre-resolved search terms from another source (e.g. the
 // image-search tags) that join the text terms; this module knows nothing about
 // where they came from.
@@ -26,10 +60,10 @@ async function resolveNaturalSearch(query, { extraTerms = [] } = {}) {
     ...new Set(
       [...expanded.technique, ...expanded.style, ...expanded.color, ...expanded.keywords, ...extraTerms, queryText]
         .filter(Boolean)
-        .flatMap((term) => term.toLowerCase().split(/\s+/)),
+        .flatMap(termVariants),
     ),
   ];
-  const regexes = terms.map((term) => new RegExp(escapeRegex(term), "i"));
+  const regexes = terms.map((term) => new RegExp(flexiblePattern(term), "i"));
   if (!regexes.length) {
     return {
       regexes,

@@ -3,6 +3,7 @@ const { User } = require("../../../models/UserModel");
 const BusinessProfile = require("../../../models/BusinessProfile");
 const Booking = require("../../../models/Bookings");
 const Conversation = require("../models/Conversation");
+const { UserProfile } = require("@models/UserProfile");
 
 // A booking in any of these states no longer counts as "active" for chat purposes.
 const TERMINAL_BOOKING_STATUSES = ["completed", "canceled", "expired"];
@@ -11,29 +12,65 @@ const TERMINAL_BOOKING_STATUSES = ["completed", "canceled", "expired"];
 // is the customer and which is the business, resolving the business side down
 // to its BusinessProfile id (Booking.business is a BusinessProfile id, not a
 // User id). Rejects same-type pairs (user<->user, business<->business).
+
 const resolveChatPair = async (userAId, userBId) => {
   const [userA, userB] = await Promise.all([
-    User.findById(userAId).select("accountState.userType").lean(),
-    User.findById(userBId).select("accountState.userType").lean(),
+    User.findById(userAId).select("accountState").lean(),
+    User.findById(userBId).select("accountState").lean(),
   ]);
-  if (!userA || !userB) return { error: "participant_not_found" };
 
-  const typeA = userA.accountState?.userType;
-  const typeB = userB.accountState?.userType;
-  const validTypes = ["user", "business"];
-  if (!validTypes.includes(typeA) || !validTypes.includes(typeB) || typeA === typeB) {
+  if (!userA || !userB) {
+    return { error: "participant_not_found" };
+  }
+
+  const [userProfileA, userProfileB, businessA, businessB] = await Promise.all([
+    UserProfile.findOne({ user: userAId }).lean(),
+    UserProfile.findOne({ user: userBId }).lean(),
+    BusinessProfile.findOne({ user: userAId }).lean(),
+    BusinessProfile.findOne({ user: userBId }).lean(),
+  ]);
+
+  const hasRole = (user, role) => user.accountState?.roles?.includes(role);
+
+  const isVerified = (profile) => profile?.isVerified === true;
+
+  const getParticipantType = (user, userProfile, businessProfile) => {
+    const hasUserRole = hasRole(user, "user");
+    const hasBusinessRole = hasRole(user, "business");
+
+    if (hasBusinessRole && isVerified(businessProfile)) {
+      return "business";
+    }
+
+    if (hasUserRole && isVerified(userProfile)) {
+      return "user";
+    }
+
+    return null;
+  };
+
+  const typeA = getParticipantType(userA, userProfileA, businessA);
+  const typeB = getParticipantType(userB, userProfileB, businessB);
+
+  if (!typeA || !typeB) {
+    return { error: "valid_verified_profile_required" };
+  }
+
+  if (typeA === typeB) {
     return { error: "chat_requires_user_and_business" };
   }
 
   const customerUserId = typeA === "user" ? userAId : userBId;
   const businessUserId = typeA === "business" ? userAId : userBId;
 
-  const businessProfile = await BusinessProfile.findOne({ user: businessUserId }).select("_id").lean();
-  if (!businessProfile) return { error: "business_profile_not_found" };
+  const businessProfileId = typeA === "business" ? businessA._id : businessB._id;
 
-  return { customerUserId, businessUserId, businessProfileId: businessProfile._id };
+  return {
+    customerUserId,
+    businessUserId,
+    businessProfileId,
+  };
 };
-
 /**
  * Live gate for sendMessage — resolves whether an active (non-terminal)
  * booking currently exists between the two chat participants. If bookingId

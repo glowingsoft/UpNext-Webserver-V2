@@ -49,9 +49,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -72,12 +70,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/login",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "login"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["login"]
                 }
               },
               "response": [
@@ -97,12 +91,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/login",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "login"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["login"]
                     }
                   },
                   "status": "OK",
@@ -183,13 +173,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/login/verify-otp",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "login",
-                    "verify-otp"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["login", "verify-otp"]
                 },
                 "description": "Second step of login when the account has two-factor authentication enabled. The initial POST /auth/login call, instead of returning a session, returns { requiresTwoFactor: true, email, otp } (otp included for testing — not yet emailed). Submit that otp here, along with the same deviceId/deviceType/timezone, to actually complete login and receive a token/refreshToken."
               },
@@ -201,13 +186,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}auth/login/verify-otp",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "login",
-                        "verify-otp"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["login", "verify-otp"]
                     }
                   },
                   "status": "OK",
@@ -245,9 +225,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -268,12 +246,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/login",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "login"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["login"]
                 }
               },
               "response": [
@@ -293,12 +267,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/login",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "login"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["login"]
                     }
                   },
                   "status": "OK",
@@ -365,9 +335,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -388,12 +356,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/login",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "login"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["login"]
                 }
               },
               "response": [
@@ -413,12 +377,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/login",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "login"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["login"]
                     }
                   },
                   "status": "OK",
@@ -553,12 +513,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/register",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "register"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["register"]
                 },
                 "description": "### Register User\n\nThis endpoint is used to register a new user.\n\n#### Request Body\n\n- `profileIcon` (string): Unique identifier referencing a profile Bitmoji.\n    \n- `name` (string): The user's full name.\n    \n- `annonymousName` (string): A randomly generated username.\n    \n- `email` (string): The user's email address.\n    \n- `phoneNumber` (string): The user's phone number.\n    \n- `phoneNote` (string): Additional note about the phone number.\n    \n- `password` (string): The user's chosen password.\n    \n- `deviceType` (string): The type of device (android/ios).\n    \n- `deviceId` (string): The device ID from Firebase FCM.\n    \n- `timezone` (string): The user's timezone.\n    \n\n#### Response (JSON Schema)\n\n``` json\n{\n    \"type\": \"object\",\n    \"properties\": {\n        \"message\": {\n            \"type\": \"string\"\n        },\n        \"data\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"basicInfo\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"profileIcon\": {\n                            \"type\": \"string\"\n                        },\n                        \"name\": {\n                            \"type\": \"string\"\n                        },\n                        \"annonymousName\": {\n                            \"type\": \"string\"\n                        },\n                        \"email\": {\n                            \"type\": \"string\"\n                        },\n                        \"phoneNumber\": {\n                            \"type\": \"string\"\n                        },\n                        \"phoneNote\": {\n                            \"type\": \"string\"\n                        }\n                    }\n                },\n                \"accountState\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"userType\": {\n                            \"type\": \"string\"\n                        },\n                        \"status\": {\n                            \"type\": \"string\"\n                        },\n                        \"verificationStatus\": {\n                            \"type\": \"string\"\n                        }\n                    }\n                },\n                \"profileCompletionStatus\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"personalDetails\": {\n                            \"type\": \"boolean\"\n                        },\n                        \"pregnancyDetails\": {\n                            \"type\": \"boolean\"\n                        },\n                        \"lossDetails\": {\n                            \"type\": \"boolean\"\n                        },\n                        \"healingDetails\": {\n                            \"type\": \"boolean\"\n                        }\n                    }\n                },\n                \"metadata\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"_id\": {\n                            \"type\": \"string\"\n                        },\n                        \"timezone\": {\n                            \"type\": \"string\"\n                        },\n                        \"createdAt\": {\n                            \"type\": \"string\"\n                        },\n                        \"updatedAt\": {\n                            \"type\": \"string\"\n                        },\n                        \"__v\": {\n                            \"type\": \"integer\"\n                        }\n                    }\n                },\n                \"otpInfo\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"otp\": {\n                            \"type\": \"string\"\n                        },\n                        \"otpUsed\": {\n                            \"type\": \"boolean\"\n                        },\n                        \"otpExpires\": {\n                            \"type\": \"string\"\n                        }\n                    }\n                }\n            }\n        }\n    }\n}\n\n ```"
               },
@@ -579,12 +535,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/register",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "register"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["register"]
                     }
                   },
                   "status": "Created",
@@ -650,9 +602,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -673,12 +623,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/social-auth",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "social-auth"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["social-auth"]
                 },
                 "description": "{\n    \"provider\": \"google\", //\"google\", \"facebook\", \"apple\",\n    \"socialId\": \"12345678901234567892\",\n    \"email\": \"use11@example.com\",\n    \"name\": \"John Doe1\",\n    \"deviceId\": \"device12345\",\n    \"deviceType\": \"ios\",\n    \"timezone\": \"Asia/Karachi\"\n}"
               },
@@ -699,12 +645,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/register",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "register"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["register"]
                     }
                   },
                   "status": "Created",
@@ -764,13 +706,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/profile",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "profile"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "profile"]
                 },
                 "description": "For business accounts, data.profile now also includes rating: { avgRating, totalReviews, ratingCount: {1..5} } -- same shape/computation as the business home dashboard (live, computed from the Review collection, not a stored/drifting counter)."
               },
@@ -782,13 +719,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/users/profile",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "profile"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "profile"]
                     }
                   },
                   "status": "Unauthorized",
@@ -817,13 +749,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/users/categories?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "categories"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["users", "categories"],
                   "query": [
                     {
                       "key": "page",
@@ -851,13 +778,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/users/categories?page=1&limit=10",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "categories"
-                      ],
+                      "host": ["{{url}}app"],
+                      "path": ["users", "categories"],
                       "query": [
                         {
                           "key": "page",
@@ -890,13 +812,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/users/categories?page=1&limit=10",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "categories"
-                      ],
+                      "host": ["{{url}}app"],
+                      "path": ["users", "categories"],
                       "query": [
                         {
                           "key": "page",
@@ -941,13 +858,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/users/notification-preferences",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "notification-preferences"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "notification-preferences"]
                 },
                 "description": "Returns the caller's own notification toggle settings (UserProfile or BusinessProfile, depending on userType). Toggles: emailNotifications, pushNotifications, profileViewAlerts, messageAlerts. All default to true."
               },
@@ -959,13 +871,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/users/notification-preferences",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "notification-preferences"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "notification-preferences"]
                     }
                   },
                   "status": "OK",
@@ -1008,13 +915,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/notification-preferences",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "notification-preferences"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "notification-preferences"]
                 },
                 "description": "Partially updates the caller's notification toggle settings. Only include the fields you want to change — omitted fields are left untouched. Fields: emailNotifications, pushNotifications, profileViewAlerts, messageAlerts (all Boolean)."
               },
@@ -1040,13 +942,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/users/notification-preferences",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "notification-preferences"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "notification-preferences"]
                     }
                   },
                   "status": "OK",
@@ -1089,13 +986,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/2fa",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "2fa"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "2fa"]
                 },
                 "description": "Step 1 of enabling 2FA — sends an OTP to the account's email and does NOT enable 2FA yet (otp is included in the response for testing, since actual email sending is currently disabled pending BREVO_EMAIL_API_KEY)."
               },
@@ -1121,13 +1013,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/users/2fa",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "2fa"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "2fa"]
                     }
                   },
                   "status": "OK",
@@ -1170,13 +1057,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/2fa",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "2fa"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "2fa"]
                 },
                 "description": "Step 2 of enabling 2FA — verifies the otp from step 1 and, only then, sets twoFactorEnabled to true."
               },
@@ -1202,13 +1084,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/users/2fa",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "2fa"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "2fa"]
                     }
                   },
                   "status": "OK",
@@ -1251,13 +1128,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/2fa",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "2fa"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "2fa"]
                 },
                 "description": "Disables 2FA. Requires the account's current password instead of an OTP, since disabling only lowers security rather than raising it."
               },
@@ -1283,13 +1155,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/users/2fa",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "2fa"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "2fa"]
                     }
                   },
                   "status": "OK",
@@ -1307,9 +1174,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -1318,9 +1183,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -1341,13 +1204,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/profile",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "profile"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "profile"]
                 }
               },
               "response": [
@@ -1367,12 +1225,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/verifyOtp",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "verifyOtp"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["verifyOtp"]
                     }
                   },
                   "status": "OK",
@@ -1427,12 +1281,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/verifyOtp",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "verifyOtp"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["verifyOtp"]
                     }
                   },
                   "status": "Unauthorized",
@@ -1479,9 +1329,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -1502,13 +1350,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/verify-otp/email",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "verify-otp",
-                    "email"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["verify-otp", "email"]
                 }
               },
               "response": [
@@ -1528,12 +1371,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/verifyOtp",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "verifyOtp"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["verifyOtp"]
                     }
                   },
                   "status": "OK",
@@ -1597,9 +1436,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -1620,12 +1457,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/forgot-password",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "forgot-password"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["forgot-password"]
                 }
               },
               "response": [
@@ -1645,12 +1478,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/forgot-password",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "forgot-password"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["forgot-password"]
                     }
                   },
                   "status": "Created",
@@ -1685,9 +1514,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -1708,13 +1535,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/resend-otp/email",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "resend-otp",
-                    "email"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["resend-otp", "email"]
                 }
               },
               "response": [
@@ -1734,12 +1556,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/resendOtp",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "resendOtp"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["resendOtp"]
                     }
                   },
                   "status": "Created",
@@ -1806,9 +1624,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -1829,12 +1645,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/reset-password",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "reset-password"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["reset-password"]
                 }
               },
               "response": [
@@ -1854,12 +1666,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/resetPassword",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "resetPassword"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["resetPassword"]
                     }
                   },
                   "status": "OK",
@@ -1926,12 +1734,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/change-password",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "change-password"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["change-password"]
                 }
               },
               "response": [
@@ -1942,12 +1746,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}auth/change-password",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "change-password"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["change-password"]
                     }
                   },
                   "status": "Unauthorized",
@@ -1984,9 +1784,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -2007,12 +1805,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/refresh-token",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "refresh-token"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["refresh-token"]
                 }
               },
               "response": [
@@ -2032,12 +1826,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/refresh-token",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "refresh-token"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["refresh-token"]
                     }
                   },
                   "status": "OK",
@@ -2063,12 +1853,8 @@
                     },
                     "url": {
                       "raw": "{{url}}auth/refresh-token",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "refresh-token"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["refresh-token"]
                     }
                   },
                   "status": "Unauthorized",
@@ -2086,9 +1872,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -2116,12 +1900,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/logout",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "logout"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["logout"]
                 }
               },
               "response": [
@@ -2132,12 +1912,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}auth/logout",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "logout"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["logout"]
                     }
                   },
                   "status": "Unauthorized",
@@ -2183,9 +1959,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -2206,13 +1980,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/switch-account",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "switch-account"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "switch-account"]
                 }
               },
               "response": [
@@ -2223,13 +1992,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/users/switch-account",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "switch-account"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "switch-account"]
                     }
                   },
                   "status": "Unauthorized",
@@ -2247,9 +2011,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -2258,9 +2020,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -2291,13 +2051,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/user-profile",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "user-profile"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "user-profile"]
                 },
                 "description": "Create or update the customer onboarding profile. profileIcon (optional) updates the User document own avatar field (same field PUT /app/users/profile writes to -- accepts a filename/path, prefixed with S3_BASE_URL on read). Response data now also includes basicInfo { _id, profileIcon, name, email, phoneNumber, language } (profileIcon fully S3-prefixed), matching the shape returned by auth/login and PUT /app/users/profile."
               },
@@ -2318,13 +2073,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/users/user-profile",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "user-profile"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "user-profile"]
                     }
                   },
                   "status": "OK",
@@ -2451,13 +2201,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/users/user-profile",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "user-profile"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "user-profile"]
                     }
                   },
                   "status": "Unauthorized",
@@ -2475,9 +2220,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -2486,9 +2229,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -2519,13 +2260,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/business-profile",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "business-profile"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "business-profile"]
                 }
               },
               "response": [
@@ -2545,13 +2281,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/users/business-profile",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "business-profile"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "business-profile"]
                     }
                   },
                   "status": "OK",
@@ -2678,13 +2409,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/users/business-profile",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "business-profile"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "business-profile"]
                     }
                   },
                   "status": "Unauthorized",
@@ -2702,9 +2428,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -2713,9 +2437,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -2746,14 +2468,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/business-profile/certifications",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "business-profile",
-                    "certifications"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "business-profile", "certifications"]
                 }
               },
               "response": [
@@ -2764,14 +2480,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/users/business-profile/certifications",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "business-profile",
-                        "certifications"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["users", "business-profile", "certifications"]
                     }
                   },
                   "status": "Unauthorized",
@@ -2789,9 +2499,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -2819,12 +2527,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/delete-account",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "delete-account"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["delete-account"]
                 }
               },
               "response": [
@@ -2835,12 +2539,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}auth/delete-account",
-                      "host": [
-                        "{{url}}auth"
-                      ],
-                      "path": [
-                        "delete-account"
-                      ]
+                      "host": ["{{url}}auth"],
+                      "path": ["delete-account"]
                     }
                   },
                   "status": "Unauthorized",
@@ -2887,14 +2587,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/business-profile/operating-hours",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "business-profile",
-                    "operating-hours"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "business-profile", "operating-hours"]
                 },
                 "description": "Generated from cURL: curl --location --request PATCH 'http://localhost:8080/api/v1/app/users/business-profile/operating-hours' \\\n--header 'Authorization: Bearer <BUSINESS_TOKEN>' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"operatingHours\": [\n        { \"dayOfWeek\": \"Mon\", \"isOpen\": true, \"startTime\": \"09:00\", \"endTime\": \"22:00\", \"breaks\": [] },\n        { \"dayOfWeek\": \"Tue\", \"isOpen\": true, \"startTime\": \"09:00\", \"endTime\": \"22:00\", \"breaks\": [] },\n        { \"dayOfWeek\": \"Wed\", \"isOpen\": true, \"startTime\": \"09:00\", \"endTime\": \"22:00\", \"breaks\": [] },\n        { \"dayOfWeek\": \"Thu\", \"isOpen\": true, \"startTime\": \"09:00\", \"endTime\": \"22:00\", \"breaks\": [] },\n        { \"dayOfWeek\": \"Fri\", \"isOpen\": true, \"startTime\": \"09:00\", \"endTime\": \"22:00\", \"breaks\": [] },\n        { \"dayOfWeek\": \"Sat\", \"isOpen\": true, \"startTime\": \"10:00\", \"endTime\": \"20:00\", \"breaks\": [] },\n        { \"dayOfWeek\": \"Sun\", \"isOpen\": false }\n    ]\n}'"
               },
@@ -2934,12 +2628,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/home?year=",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "home"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["home"],
                   "query": [
                     {
                       "key": "year",
@@ -2948,7 +2638,7 @@
                     }
                   ]
                 },
-                "description": "For business accounts, data now also includes: business (id/name/businessName/profileImage/timezone/currency), summary (customers, bookings, conversionRate, unansweredMessages, bookingsThisWeek, completedBookings, profileViews, averageRating -- conversionRate/unansweredMessages/profileViews are always zeroed out, there is no lead/messaging/profile-view tracking yet), todaysSchedules (same data as the existing bookings field, just also exposed under this key name), revenueGrowth (current vs previous year, by month, in minor units), topCustomers (top 5 by spend), recentReviews (last 5, businessReply always null -- no reply feature yet), and bookingStatus (counts by status). Existing bookings/toadyCount/stats/profile/stripe/serviceTypeList/statusList fields are unchanged. For customer accounts: businesses is now suggestedBusinesses, services is now suggestedServices, bookings is now todaysSchedules (same underlying data, renamed only), and events is now suggestedEvents -- same object shape as GET /app/home/events, capped to the same count as suggestedServices (max 5), and degrades to an empty array if the Ticketmaster call fails. Accepts an optional ?year= query param: for business accounts it selects revenueGrowth.year (previousYear = year-1), defaulting to the current year. For customer accounts, data now also includes: summary (providers, amountSpent, scheduledAppointments, completedBookings, requestedBookings, ongoingBookings, scheduledBookings, expiredBookings), bookingStatus (same shape as the business dashboard -- total + items by status, scoped to the caller own bookings), and bookingsOverTime ({ year, items: [{month, monthKey, count}] }, monthly booking counts for ?year=, defaulting to the current year)."
+                "description": "For business accounts, data now also includes: business (id/name/businessName/profileImage/timezone/currency), summary (customers, bookings, conversionRate, unansweredMessages, bookingsThisWeek, completedBookings, profileViews, averageRating -- conversionRate/unansweredMessages/profileViews are always zeroed out, there is no lead/messaging/profile-view tracking yet), todaysSchedules (same data as the existing bookings field, just also exposed under this key name), revenueGrowth (current vs previous year, by month, in minor units), topCustomers (top 5 by spend), recentReviews (last 5, businessReply always null -- no reply feature yet), and bookingStatus (counts by status). Existing bookings/todayCount/stats/profile/stripe/serviceTypeList/statusList fields are unchanged. For customer accounts: businesses is now suggestedBusinesses, services is now suggestedServices, bookings is now todaysSchedules (same underlying data, renamed only), and events is now suggestedEvents -- same object shape as GET /app/home/events, capped to the same count as suggestedServices (max 5), and degrades to an empty array if the Ticketmaster call fails. Accepts an optional ?year= query param: for business accounts it selects revenueGrowth.year (previousYear = year-1), defaulting to the current year. For customer accounts, data now also includes: summary (providers, amountSpent, scheduledAppointments, completedBookings, requestedBookings, ongoingBookings, scheduledBookings, expiredBookings), bookingStatus (same shape as the business dashboard -- total + items by status, scoped to the caller own bookings), and bookingsOverTime ({ year, items: [{month, monthKey, count}] }, monthly booking counts for ?year=, defaulting to the current year)."
               },
               "response": []
             },
@@ -2971,13 +2661,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/home/events?page=1&limit=5",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "home",
-                    "events"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["home", "events"],
                   "query": [
                     {
                       "key": "page",
@@ -3050,12 +2735,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/services?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "services"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["services"],
                   "query": [
                     {
                       "key": "page",
@@ -3117,13 +2798,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/services/6a0ee55affdb57541cde3d4d",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "services",
-                    "6a0ee55affdb57541cde3d4d"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["services", "6a0ee55affdb57541cde3d4d"]
                 }
               },
               "response": []
@@ -3174,12 +2850,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/services",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "services"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["services"]
                 }
               },
               "response": []
@@ -3210,13 +2882,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/services/6a0ee55affdb57541cde3d4d",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "services",
-                    "6a0ee55affdb57541cde3d4d"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["services", "6a0ee55affdb57541cde3d4d"]
                 }
               },
               "response": [
@@ -3236,13 +2903,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/services/6a047ef593853d5849a723ab",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "services",
-                        "6a047ef593853d5849a723ab"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["services", "6a047ef593853d5849a723ab"]
                     }
                   },
                   "status": "OK",
@@ -3377,13 +3039,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/services/6a047ef593853d5849a723ab",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "services",
-                    "6a047ef593853d5849a723ab"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["services", "6a047ef593853d5849a723ab"]
                 }
               },
               "response": [
@@ -3403,13 +3060,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/services/6a047ef593853d5849a723ab",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "services",
-                        "6a047ef593853d5849a723ab"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["services", "6a047ef593853d5849a723ab"]
                     }
                   },
                   "status": "OK",
@@ -3552,14 +3204,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/bookings/slots/?scope=service&targetId={{serviceId}}&date=2026-07-17",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    "slots",
-                    ""
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", "slots", ""],
                   "query": [
                     {
                       "key": "scope",
@@ -3609,13 +3255,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/bookings/?page=1&limit=10&status=&scope=&date=",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    ""
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", ""],
                   "query": [
                     {
                       "key": "page",
@@ -3679,14 +3320,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/bookings/business/?page=1&limit=10&status=&scope=&date=&userId=",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    "business",
-                    ""
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", "business", ""],
                   "query": [
                     {
                       "key": "page",
@@ -3754,13 +3389,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/bookings/billing-history?page=1&limit=10&status=&startDate=&endDate=&keyword=",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    "billing-history"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", "billing-history"],
                   "query": [
                     {
                       "key": "page",
@@ -3825,14 +3455,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/bookings/billing-history/:bookingId",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    "billing-history",
-                    ":bookingId"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", "billing-history", ":bookingId"],
                   "variable": [
                     {
                       "key": "bookingId",
@@ -3873,13 +3497,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/bookings/calendar?range=today&date=",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    "calendar"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", "calendar"],
                   "query": [
                     {
                       "key": "range",
@@ -3932,13 +3551,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/bookings/:bookingId",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    ":bookingId"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", ":bookingId"],
                   "variable": [
                     {
                       "key": "bookingId",
@@ -3976,13 +3590,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/bookings/",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    ""
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", ""]
                 },
                 "description": "Time-based fork: slot <= 4 days away -> PaymentIntent auth hold (intentType 'payment'); > 4 days -> SetupIntent card vaulting (intentType 'setup'). stripePaymentMethodId is REQUIRED (client-side createPaymentMethod(), not a hardcoded pm_card_visa shortcut) — no Booking, not even a checkout draft, is created without it. Response is either { booking, intentType } (payment confirmed immediately, no 3DS needed) or { draftId, clientSecret, intentType } (3DS required — complete with handleNextAction/handleNextActionForSetup(clientSecret); the real Booking only gets created once the Stripe webhook confirms it, not from this response)."
               },
@@ -4005,14 +3614,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/bookings/:bookingId/accept",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    ":bookingId",
-                    "accept"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", ":bookingId", "accept"],
                   "variable": [
                     {
                       "key": "bookingId",
@@ -4040,14 +3643,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/bookings/:bookingId/start",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    ":bookingId",
-                    "start"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", ":bookingId", "start"],
                   "variable": [
                     {
                       "key": "bookingId",
@@ -4076,14 +3673,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/bookings/:bookingId/reject",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    ":bookingId",
-                    "reject"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", ":bookingId", "reject"],
                   "variable": [
                     {
                       "key": "bookingId",
@@ -4120,14 +3711,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/bookings/:bookingId/cancel",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    ":bookingId",
-                    "cancel"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", ":bookingId", "cancel"],
                   "variable": [
                     {
                       "key": "bookingId",
@@ -4164,14 +3749,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/bookings/:bookingId/reminder",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    ":bookingId",
-                    "reminder"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", ":bookingId", "reminder"],
                   "variable": [
                     {
                       "key": "bookingId",
@@ -4199,14 +3778,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/bookings/:bookingId/complete",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    ":bookingId",
-                    "complete"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", ":bookingId", "complete"],
                   "variable": [
                     {
                       "key": "bookingId",
@@ -4244,14 +3817,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/bookings/:bookingId/fix-payment",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "bookings",
-                    ":bookingId",
-                    "fix-payment"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["bookings", ":bookingId", "fix-payment"],
                   "variable": [
                     {
                       "key": "bookingId",
@@ -4297,12 +3864,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/packages",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "packages"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["packages"],
                   "query": [
                     {
                       "key": "page",
@@ -4348,12 +3911,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/packages",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "packages"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["packages"]
                     }
                   },
                   "status": "OK",
@@ -4495,13 +4054,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/packages/6a4f71f071c6179044576bcd?lat=31.5204&lng=74.3587",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "packages",
-                    "6a4f71f071c6179044576bcd"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["packages", "6a4f71f071c6179044576bcd"],
                   "query": [
                     {
                       "key": "lat",
@@ -4524,13 +4078,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/packages/6a0c066a9b89365ffdcceae2",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "packages",
-                        "6a0c066a9b89365ffdcceae2"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["packages", "6a0c066a9b89365ffdcceae2"]
                     }
                   },
                   "status": "OK",
@@ -4689,12 +4238,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/packages",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "packages"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["packages"]
                 }
               },
               "response": [
@@ -4714,12 +4259,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/packages",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "packages"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["packages"]
                     }
                   },
                   "status": "Created",
@@ -4858,13 +4399,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/packages/6a32774423608a9c7b9854de",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "packages",
-                    "6a32774423608a9c7b9854de"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["packages", "6a32774423608a9c7b9854de"]
                 }
               },
               "response": [
@@ -4884,13 +4420,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/packages/6a0c066a9b89365ffdcceae2",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "packages",
-                        "6a0c066a9b89365ffdcceae2"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["packages", "6a0c066a9b89365ffdcceae2"]
                     }
                   },
                   "status": "OK",
@@ -5029,13 +4560,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/packages/6a0c066a9b89365ffdcceae2",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "packages",
-                    "6a0c066a9b89365ffdcceae2"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["packages", "6a0c066a9b89365ffdcceae2"]
                 }
               },
               "response": [
@@ -5055,13 +4581,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/packages/6a0c066a9b89365ffdcceae2",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "packages",
-                        "6a0c066a9b89365ffdcceae2"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["packages", "6a0c066a9b89365ffdcceae2"]
                     }
                   },
                   "status": "OK",
@@ -5204,12 +4725,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/promotions?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "promotions"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["promotions"],
                   "query": [
                     {
                       "key": "page",
@@ -5260,12 +4777,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/promotions",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "promotions"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["promotions"]
                     }
                   },
                   "status": "OK",
@@ -5403,13 +4916,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/promotions/6a0c1197d9266d7e818c0cb8",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "promotions",
-                    "6a0c1197d9266d7e818c0cb8"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["promotions", "6a0c1197d9266d7e818c0cb8"]
                 },
                 "description": "Also returns \"Usage & limits\" fields: totalUsageLimit, perUserLimit (unchanged, stored config), redemptionsUsed (live count from the PromotionUsage collection — never a stored/drifting counter), redemptionsRemaining (max(0, totalUsageLimit - redemptionsUsed))."
               },
@@ -5421,13 +4929,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/promotions/6a0c1197d9266d7e818c0cb8",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "promotions",
-                        "6a0c1197d9266d7e818c0cb8"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["promotions", "6a0c1197d9266d7e818c0cb8"]
                     }
                   },
                   "status": "OK",
@@ -5562,12 +5065,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/promotions",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "promotions"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["promotions"]
                 }
               },
               "response": [
@@ -5587,12 +5086,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/packages",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "packages"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["packages"]
                     }
                   },
                   "status": "Created",
@@ -5731,13 +5226,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/promotions/check-promo-code",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "promotions",
-                    "check-promo-code"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["promotions", "check-promo-code"]
                 },
                 "description": "Checkout \"Apply Promo Code\" flow — validates a promo code against a specific service/package (not just that the code exists somewhere). Checks the same rule bookingService.createBooking enforces (status active, unexpired, targetId actually bundled in the promotion), so a code that validates here is guaranteed to also apply when the booking is created with the same promotionId. 404 promo_code_invalid on any mismatch (wrong code, expired, doesn't apply to this target) — doesn't distinguish reasons to avoid leaking which part failed. 400 promotion_usage_limit_reached / promotion_user_limit_reached if totalUsageLimit / perUserLimit (tracked in the PromotionUsage collection, one row per redeemed booking) has been hit — createBooking enforces the same limits and will reject with the same errors if a code passes validation here but gets used up before checkout completes."
               },
@@ -5753,13 +5243,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/promotions/check-promo-code",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "promotions",
-                        "check-promo-code"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["promotions", "check-promo-code"]
                     }
                   },
                   "status": "OK",
@@ -5797,13 +5282,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/promotions/6a0c1197d9266d7e818c0cb8",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "promotions",
-                    "6a0c1197d9266d7e818c0cb8"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["promotions", "6a0c1197d9266d7e818c0cb8"]
                 }
               },
               "response": [
@@ -5823,13 +5303,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/promotions/6a0c1197d9266d7e818c0cb8",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "promotions",
-                        "6a0c1197d9266d7e818c0cb8"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["promotions", "6a0c1197d9266d7e818c0cb8"]
                     }
                   },
                   "status": "OK",
@@ -5968,13 +5443,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/promotions/6a0c1197d9266d7e818c0cb8",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "promotions",
-                    "6a0c1197d9266d7e818c0cb8"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["promotions", "6a0c1197d9266d7e818c0cb8"]
                 }
               },
               "response": [
@@ -5994,13 +5464,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/promotions/6a0c1197d9266d7e818c0cb8",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "promotions",
-                        "6a0c1197d9266d7e818c0cb8"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["promotions", "6a0c1197d9266d7e818c0cb8"]
                     }
                   },
                   "status": "OK",
@@ -6131,13 +5596,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/users/businesses?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "businesses"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["users", "businesses"],
                   "query": [
                     {
                       "key": "page",
@@ -6194,13 +5654,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/users/businesses?page=1&limit=10",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "users",
-                        "businesses"
-                      ],
+                      "host": ["{{url}}app"],
+                      "path": ["users", "businesses"],
                       "query": [
                         {
                           "key": "page",
@@ -6275,14 +5730,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/overview",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "overview"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "overview"]
                 },
                 "description": "Business-detail Overview tab for customers: business profile fields (about, category, provider type, business size, experience, price range, location, rating) plus a top-3 rated services preview."
               },
@@ -6294,14 +5743,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/overview",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "overview"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "overview"]
                     }
                   },
                   "status": "OK",
@@ -6330,14 +5773,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/services?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "services"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "services"],
                   "query": [
                     {
                       "key": "page",
@@ -6359,14 +5796,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/services",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "services"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "services"]
                     }
                   },
                   "status": "OK",
@@ -6395,14 +5826,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/packages?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "packages"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "packages"],
                   "query": [
                     {
                       "key": "page",
@@ -6424,14 +5849,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/packages",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "packages"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "packages"]
                     }
                   },
                   "status": "OK",
@@ -6460,13 +5879,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/businesses/promotions?businessId=6a46575cc1c2fd4a0cc6c45b&page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "businesses",
-                    "promotions"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["businesses", "promotions"],
                   "query": [
                     {
                       "key": "businessId",
@@ -6493,13 +5907,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/businesses/promotions?businessId=6a46575cc1c2fd4a0cc6c45b",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "businesses",
-                        "promotions"
-                      ],
+                      "host": ["{{url}}app"],
+                      "path": ["businesses", "promotions"],
                       "query": [
                         {
                           "key": "businessId",
@@ -6534,14 +5943,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/operating-hours",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "operating-hours"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "operating-hours"]
                 },
                 "description": "Operating Hours tab — read only for customers."
               },
@@ -6553,14 +5956,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/operating-hours",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "operating-hours"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "operating-hours"]
                     }
                   },
                   "status": "OK",
@@ -6589,14 +5986,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/bookings?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "bookings"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "bookings"],
                   "query": [
                     {
                       "key": "page",
@@ -6618,14 +6009,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/bookings",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "bookings"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "bookings"]
                     }
                   },
                   "status": "OK",
@@ -6654,14 +6039,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/reviews?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "reviews"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "reviews"],
                   "query": [
                     {
                       "key": "page",
@@ -6683,14 +6062,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/reviews",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "reviews"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "reviews"]
                     }
                   },
                   "status": "OK",
@@ -6719,14 +6092,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/portfolios?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "portfolios"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "portfolios"],
                   "query": [
                     {
                       "key": "page",
@@ -6748,14 +6115,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/businesses/6a46575cc1c2fd4a0cc6c45b/portfolios",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "portfolios"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "portfolios"]
                     }
                   },
                   "status": "OK",
@@ -6801,12 +6162,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/portfolios",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "portfolios"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["portfolios"]
                 }
               },
               "response": [
@@ -6817,12 +6174,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/portfolios",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "portfolios"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["portfolios"]
                     }
                   },
                   "status": "OK",
@@ -6960,13 +6313,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/portfolios/6a2fa06f89c3e5683206b21e",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "portfolios",
-                    "6a2fa06f89c3e5683206b21e"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["portfolios", "6a2fa06f89c3e5683206b21e"]
                 }
               },
               "response": [
@@ -6977,13 +6325,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/portfolios/6a2fa06f89c3e5683206b21e",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "portfolios",
-                        "6a2fa06f89c3e5683206b21e"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["portfolios", "6a2fa06f89c3e5683206b21e"]
                     }
                   },
                   "status": "OK",
@@ -7118,12 +6461,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/portfolios",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "portfolios"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["portfolios"]
                 }
               },
               "response": [
@@ -7143,12 +6482,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/packages",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "packages"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["packages"]
                     }
                   },
                   "status": "Created",
@@ -7287,13 +6622,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/portfolios/6a2fa06f89c3e5683206b21e",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "portfolios",
-                    "6a2fa06f89c3e5683206b21e"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["portfolios", "6a2fa06f89c3e5683206b21e"]
                 }
               },
               "response": [
@@ -7313,13 +6643,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/portfolios/6a2fa06f89c3e5683206b21e",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "portfolios",
-                        "6a2fa06f89c3e5683206b21e"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["portfolios", "6a2fa06f89c3e5683206b21e"]
                     }
                   },
                   "status": "OK",
@@ -7454,13 +6779,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/portfolios/6a0c066a9b89365ffdcceae2",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "portfolios",
-                    "6a0c066a9b89365ffdcceae2"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["portfolios", "6a0c066a9b89365ffdcceae2"]
                 }
               },
               "response": [
@@ -7480,13 +6800,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/packages/6a0c066a9b89365ffdcceae2",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "packages",
-                        "6a0c066a9b89365ffdcceae2"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["packages", "6a0c066a9b89365ffdcceae2"]
                     }
                   },
                   "status": "OK",
@@ -7607,12 +6922,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/notifications?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "notifications"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["notifications"],
                   "query": [
                     {
                       "key": "page",
@@ -7633,12 +6944,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}settings/termsAndConditions",
-                      "host": [
-                        "{{url}}settings"
-                      ],
-                      "path": [
-                        "termsAndConditions"
-                      ]
+                      "host": ["{{url}}settings"],
+                      "path": ["termsAndConditions"]
                     }
                   },
                   "status": "OK",
@@ -7686,13 +6993,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/settings/terms-conditions",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "settings",
-                    "terms-conditions"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["settings", "terms-conditions"]
                 }
               },
               "response": [
@@ -7703,12 +7005,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}settings/termsAndConditions",
-                      "host": [
-                        "{{url}}settings"
-                      ],
-                      "path": [
-                        "termsAndConditions"
-                      ]
+                      "host": ["{{url}}settings"],
+                      "path": ["termsAndConditions"]
                     }
                   },
                   "status": "OK",
@@ -7756,13 +7054,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/settings/about-us",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "settings",
-                    "about-us"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["settings", "about-us"]
                 }
               },
               "response": [
@@ -7773,12 +7066,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}settings/aboutUs",
-                      "host": [
-                        "{{url}}settings"
-                      ],
-                      "path": [
-                        "aboutUs"
-                      ]
+                      "host": ["{{url}}settings"],
+                      "path": ["aboutUs"]
                     }
                   },
                   "status": "OK",
@@ -7826,13 +7115,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/settings/privacy-policy",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "settings",
-                    "privacy-policy"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["settings", "privacy-policy"]
                 }
               },
               "response": [
@@ -7843,13 +7127,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}app/settings/privacy-policy",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "settings",
-                        "privacy-policy"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["settings", "privacy-policy"]
                     }
                   },
                   "status": "OK",
@@ -7974,12 +7253,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/support",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "support"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["support"]
                 }
               },
               "response": []
@@ -7991,13 +7266,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/settings/faqs?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "settings",
-                    "faqs"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["settings", "faqs"],
                   "query": [
                     {
                       "key": "page",
@@ -8023,9 +7293,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8034,9 +7302,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8058,14 +7324,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/users/business-profile/analytics",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "business-profile",
-                    "analytics"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "business-profile", "analytics"]
                 },
                 "description": "Business self-service Analytics screen (business role). range: 7d|30d|90d, defaults to 90d. Returns profileViews, searchAppearances, bookingRequests, conversions, avgRating, revenue -- each as { count/average/amountMinor, changePercent } vs the immediately-preceding period of the same length -- plus performanceChart (all-time monthly revenue, same series as home.stats.performanceChart). profileViews/searchAppearances are now tracked via a new BusinessAnalyticsEvent collection: a profile_view is logged on every GET /app/businesses/:businessId/overview hit (customer-only route), a search_impression is logged for every business returned by GET /app/users/businesses (only when the caller is a customer). conversions = bookings created in the period whose status moved past \"requested\" (i.e. the business accepted them) -- an approximation, since there is no view/search-to-booking attribution."
               },
@@ -8077,9 +7337,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8088,9 +7346,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8112,14 +7368,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/users/business-profile/revenue",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "business-profile",
-                    "revenue"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "business-profile", "revenue"]
                 },
                 "description": "Revenue screen (business role). availableToWithdraw / pendingPayout come from the live Stripe Connect balance (same source as home.stats.withdrawable). grossRevenue/netEarned are for the last full calendar month with changePercent vs the month before that (netEarned assumes the flat 5% platform fee, same rate as APPLICATION_FEE_PERCENT). perClient is a 5-row preview of GET /app/bookings/billing-history?status=paid -- \"See All\" on this screen should just deep-link to that existing endpoint/screen."
               },
@@ -8159,13 +7409,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/reviews/?scope=service&targetId=&page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "reviews",
-                    ""
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["reviews", ""],
                   "query": [
                     {
                       "key": "scope",
@@ -8227,12 +7472,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/reviews",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "reviews"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["reviews"]
                 },
                 "description": "rating accepts a decimal between 1 and 5 (e.g. 4.5), not just whole numbers."
               },
@@ -8264,13 +7505,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/reviews/664ghi...",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "reviews",
-                    "664ghi..."
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["reviews", "664ghi..."]
                 },
                 "description": "Updates the caller's own review, identified by its _id in the path. The review is looked up by { _id: reviewId, subject: <authenticated user> } — 404 review_not_found if this user isn't the one who left that review, so only the original reviewer can ever update it. rating accepts a decimal between 1 and 5 (e.g. 4.5), not just whole numbers."
               },
@@ -8307,14 +7543,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/payments/booking/:bookingId",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "payments",
-                    "booking",
-                    ":bookingId"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["payments", "booking", ":bookingId"],
                   "variable": [
                     {
                       "key": "bookingId",
@@ -8337,9 +7567,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8348,9 +7576,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8381,13 +7607,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/cards",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "cards"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "cards"]
                 },
                 "description": "Manage Card screen -- add a new saved card (customer role). IMPORTANT: paymentMethodId must be a Stripe PaymentMethod id (pm_xxx) created client-side via Stripe.js/the mobile SDK (createPaymentMethod) -- raw card number/CVC must NEVER be sent to this API directly (PCI/Stripe ToS). cardHolderName (optional) is saved both on our own Card collection and pushed to the Stripe PaymentMethod billing_details.name. Creates the caller Stripe Customer on the first card if one does not exist yet. setDefault (optional) makes it the default card for future charges. Response data._id is our own Card document id (use this, not the Stripe pm_xxx, for the update/delete endpoints below)."
               },
@@ -8399,9 +7620,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8410,9 +7629,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8434,13 +7651,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/users/cards",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "cards"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "cards"]
                 },
                 "description": "List the caller saved cards (customer role) -- backed by our own Card collection (scoped strictly to req.user._id), not a live Stripe Customer lookup. Each item: { _id (our Card document id -- use this for update/delete, not a Stripe id), brand, last4, expMonth, expYear, cardHolderName, isDefault }."
               },
@@ -8452,9 +7664,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8463,9 +7673,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8496,14 +7704,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/cards/:cardId",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "cards",
-                    ":cardId"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["users", "cards", ":cardId"],
                   "variable": [
                     {
                       "key": "cardId",
@@ -8521,9 +7723,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8532,9 +7732,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8556,14 +7754,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/users/cards/:cardId",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "cards",
-                    ":cardId"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["users", "cards", ":cardId"],
                   "variable": [
                     {
                       "key": "cardId",
@@ -8586,9 +7778,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8597,9 +7787,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8621,14 +7809,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}app/users/business-profile/payout-methods",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "business-profile",
-                    "payout-methods"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "business-profile", "payout-methods"]
                 },
                 "description": "Withdraw Funds screen -- lists the business Stripe Connect payout destinations (bank accounts and debit cards). Each item: { id, type: \"bank_account\"|\"card\", bankName, brand, last4, isDefault }. 400 stripe_onboarding_required if the business has no Stripe Connect account yet."
               },
@@ -8640,9 +7822,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8651,9 +7831,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -8684,14 +7862,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/users/business-profile/withdraw",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "users",
-                    "business-profile",
-                    "withdraw"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["users", "business-profile", "withdraw"]
                 },
                 "description": "Confirm Withdrawal button on the Withdraw Funds screen. amount is in major units (dollars); payoutMethodId is the id of a payout method from GET .../payout-methods. Triggers a REAL Stripe payout (stripe.payouts.create) on the business Connect account for that amount -- 400s with insufficient_withdrawable_balance if amount exceeds the live available balance, or invalid_withdrawal_amount if amount is not a positive number. The connected account payout schedule is set to \"manual\" (at account creation, and lazily via ensureManualPayoutSchedule for older accounts) so Stripe never also auto-pays out the same balance on its own rolling schedule. Funds arrive in 2-3 business days via Stripe Connect."
               },
@@ -8710,17 +7882,8 @@
                 "url": {
                   "raw": "https://peculiar-unframed-anointer.ngrok-free.dev/api/v1/stripe/webhook",
                   "protocol": "https",
-                  "host": [
-                    "peculiar-unframed-anointer",
-                    "ngrok-free",
-                    "dev"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "stripe",
-                    "webhook"
-                  ]
+                  "host": ["peculiar-unframed-anointer", "ngrok-free", "dev"],
+                  "path": ["api", "v1", "stripe", "webhook"]
                 }
               },
               "response": []
@@ -8732,12 +7895,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}stripe/test",
-                  "host": [
-                    "{{url}}stripe"
-                  ],
-                  "path": [
-                    "test"
-                  ]
+                  "host": ["{{url}}stripe"],
+                  "path": ["test"]
                 }
               },
               "response": []
@@ -8764,12 +7923,8 @@
                     ],
                     "url": {
                       "raw": "{{url}}app/help-center?page=1&limit=10",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "help-center"
-                      ],
+                      "host": ["{{url}}app"],
+                      "path": ["help-center"],
                       "query": [
                         {
                           "key": "page",
@@ -8796,12 +7951,8 @@
                         "header": [],
                         "url": {
                           "raw": "{{url}}app/help-center?page=1&limit=10",
-                          "host": [
-                            "{{url}}app"
-                          ],
-                          "path": [
-                            "help-center"
-                          ],
+                          "host": ["{{url}}app"],
+                          "path": ["help-center"],
                           "query": [
                             {
                               "key": "page",
@@ -8837,13 +7988,8 @@
                     ],
                     "url": {
                       "raw": "{{url}}app/help-center/66d58d5172e16ac86d740e6c",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "help-center",
-                        "66d58d5172e16ac86d740e6c"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["help-center", "66d58d5172e16ac86d740e6c"]
                     }
                   },
                   "response": [
@@ -8854,13 +8000,8 @@
                         "header": [],
                         "url": {
                           "raw": "{{url}}app/help-center/66d58d5172e16ac86d740e6c",
-                          "host": [
-                            "{{url}}app"
-                          ],
-                          "path": [
-                            "help-center",
-                            "66d58d5172e16ac86d740e6c"
-                          ]
+                          "host": ["{{url}}app"],
+                          "path": ["help-center", "66d58d5172e16ac86d740e6c"]
                         }
                       },
                       "status": "OK",
@@ -8877,13 +8018,8 @@
                         "header": [],
                         "url": {
                           "raw": "{{url}}app/help-center/66d58d5172e16ac86d740e6c",
-                          "host": [
-                            "{{url}}app"
-                          ],
-                          "path": [
-                            "help-center",
-                            "66d58d5172e16ac86d740e6c"
-                          ]
+                          "host": ["{{url}}app"],
+                          "path": ["help-center", "66d58d5172e16ac86d740e6c"]
                         }
                       },
                       "status": "Not Found",
@@ -8913,12 +8049,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/contact-us",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "contact-us"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["contact-us"]
                 }
               },
               "response": [
@@ -8938,12 +8070,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/contact-us",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "contact-us"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["contact-us"]
                     }
                   },
                   "status": "Created",
@@ -8971,12 +8099,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/support",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "support"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["support"]
                 }
               },
               "response": [
@@ -8996,12 +8120,8 @@
                     },
                     "url": {
                       "raw": "{{url}}app/support",
-                      "host": [
-                        "{{url}}app"
-                      ],
-                      "path": [
-                        "support"
-                      ]
+                      "host": ["{{url}}app"],
+                      "path": ["support"]
                     }
                   },
                   "status": "Created",
@@ -9021,18 +8141,9 @@
                 "url": {
                   "raw": "http://localhost:5001/api/v1/app/public/businesses/:businessId",
                   "protocol": "http",
-                  "host": [
-                    "localhost"
-                  ],
+                  "host": ["localhost"],
                   "port": "5001",
-                  "path": [
-                    "api",
-                    "v1",
-                    "app",
-                    "public",
-                    "businesses",
-                    ":businessId"
-                  ],
+                  "path": ["api", "v1", "app", "public", "businesses", ":businessId"],
                   "query": [
                     {
                       "key": "categoryId",
@@ -9058,17 +8169,9 @@
                 "url": {
                   "raw": "http://localhost:5001/api/v1/app/public/businesses?keyword=hair&businessType=solo&location=Los%20Angeles&isAvailable=true&minExperience=2&badges=6a02cc1521e6e1e6e6689e21,6a02f52098f27f76dd262c49&sortBy=rating_high_low&page=1&limit=10",
                   "protocol": "http",
-                  "host": [
-                    "localhost"
-                  ],
+                  "host": ["localhost"],
                   "port": "5001",
-                  "path": [
-                    "api",
-                    "v1",
-                    "app",
-                    "public",
-                    "businesses"
-                  ],
+                  "path": ["api", "v1", "app", "public", "businesses"],
                   "query": [
                     {
                       "key": "keyword",
@@ -9141,12 +8244,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/conversations?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "conversations"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["conversations"],
                   "query": [
                     {
                       "key": "page",
@@ -9187,14 +8286,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/conversations/:conversationId/action",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "conversations",
-                    ":conversationId",
-                    "action"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["conversations", ":conversationId", "action"],
                   "variable": [
                     {
                       "key": "conversationId",
@@ -9224,13 +8317,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/conversations/messages?page=1&limit=10&objectId=6a27ed7740df44c0ff479a19",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "conversations",
-                    "messages"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["conversations", "messages"],
                   "query": [
                     {
                       "key": "page",
@@ -9276,16 +8364,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/conversations/messages/object/:objectId/messages?page=1&limit=10",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "conversations",
-                    "messages",
-                    "object",
-                    ":objectId",
-                    "messages"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["conversations", "messages", "object", ":objectId", "messages"],
                   "query": [
                     {
                       "key": "page",
@@ -9323,14 +8403,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/conversations/messages/:messageId",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "conversations",
-                    "messages",
-                    ":messageId"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["conversations", "messages", ":messageId"],
                   "variable": [
                     {
                       "key": "messageId",
@@ -9358,13 +8432,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/conversations/:conversationId",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "conversations",
-                    ":conversationId"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["conversations", ":conversationId"],
                   "variable": [
                     {
                       "key": "conversationId",
@@ -9392,13 +8461,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/conversations/message",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "conversations",
-                    "message"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["conversations", "message"]
                 },
                 "description": "used to send a message to user  \nyou can also use \"sendMessage 1-1 with conversationId\" when user going from chats screen as you will have conversationId"
               },
@@ -9420,13 +8484,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/conversations/message",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "conversations",
-                    "message"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["conversations", "message"]
                 },
                 "description": "get messages against conversation id  \nsame API for direct/group chats"
               },
@@ -9448,12 +8507,8 @@
                 },
                 "url": {
                   "raw": "{{url}}conversations/message",
-                  "host": [
-                    "{{url}}conversations"
-                  ],
-                  "path": [
-                    "message"
-                  ]
+                  "host": ["{{url}}conversations"],
+                  "path": ["message"]
                 },
                 "description": "optional participants array  \nby default there will be admin as participant"
               },
@@ -9475,13 +8530,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/conversations/message",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "conversations",
-                    "message"
-                  ]
+                  "host": ["{{url}}app"],
+                  "path": ["conversations", "message"]
                 },
                 "description": "send group message against conversationId"
               },
@@ -9503,14 +8553,8 @@
                 },
                 "url": {
                   "raw": "{{url}}app/conversations/:conversationId/participants",
-                  "host": [
-                    "{{url}}app"
-                  ],
-                  "path": [
-                    "conversations",
-                    ":conversationId",
-                    "participants"
-                  ],
+                  "host": ["{{url}}app"],
+                  "path": ["conversations", ":conversationId", "participants"],
                   "variable": [
                     {
                       "key": "conversationId",
@@ -9540,9 +8584,7 @@
                 "type": "text/javascript",
                 "packages": {},
                 "requests": {},
-                "exec": [
-                  ""
-                ]
+                "exec": [""]
               }
             },
             {
@@ -9551,9 +8593,7 @@
                 "type": "text/javascript",
                 "packages": {},
                 "requests": {},
-                "exec": [
-                  ""
-                ]
+                "exec": [""]
               }
             }
           ]
@@ -9577,12 +8617,8 @@
             },
             "url": {
               "raw": "{{url}}app/conversations?page=1&limit=10",
-              "host": [
-                "{{url}}app"
-              ],
-              "path": [
-                "conversations"
-              ],
+              "host": ["{{url}}app"],
+              "path": ["conversations"],
               "query": [
                 {
                   "key": "page",
@@ -9666,12 +8702,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/login",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "login"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["login"]
                 }
               },
               "response": []
@@ -9727,12 +8759,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/login",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "login"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["login"]
                 }
               },
               "response": []
@@ -9774,12 +8802,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/login",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "login"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["login"]
                 }
               },
               "response": []
@@ -9809,9 +8833,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -9832,12 +8854,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/reset-password",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "reset-password"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["reset-password"]
                 }
               },
               "response": []
@@ -9875,9 +8893,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -9904,12 +8920,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/register",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "register"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["register"]
                 }
               },
               "response": []
@@ -9920,9 +8932,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -9931,9 +8941,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -9954,13 +8962,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/verify-otp/email",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "verify-otp",
-                    "email"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["verify-otp", "email"]
                 }
               },
               "response": []
@@ -9971,9 +8974,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -9982,9 +8983,7 @@
                 {
                   "listen": "prerequest",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
+                    "exec": [""],
                     "type": "text/javascript",
                     "packages": {},
                     "requests": {}
@@ -10005,13 +9004,8 @@
                 },
                 "url": {
                   "raw": "{{url}}auth/resend-otp/email",
-                  "host": [
-                    "{{url}}auth"
-                  ],
-                  "path": [
-                    "resend-otp",
-                    "email"
-                  ]
+                  "host": ["{{url}}auth"],
+                  "path": ["resend-otp", "email"]
                 }
               },
               "response": []
@@ -10043,12 +9037,8 @@
                 },
                 "url": {
                   "raw": "{{url}}util/bulk-insert",
-                  "host": [
-                    "{{url}}util"
-                  ],
-                  "path": [
-                    "bulk-insert"
-                  ]
+                  "host": ["{{url}}util"],
+                  "path": ["bulk-insert"]
                 }
               },
               "response": []
@@ -10075,12 +9065,8 @@
                 },
                 "url": {
                   "raw": "{{url}}util/delete-collection",
-                  "host": [
-                    "{{url}}util"
-                  ],
-                  "path": [
-                    "delete-collection"
-                  ]
+                  "host": ["{{url}}util"],
+                  "path": ["delete-collection"]
                 }
               },
               "response": []
@@ -10106,12 +9092,8 @@
                 },
                 "url": {
                   "raw": "{{url}}communications/send-email-sgrid",
-                  "host": [
-                    "{{url}}communications"
-                  ],
-                  "path": [
-                    "send-email-sgrid"
-                  ]
+                  "host": ["{{url}}communications"],
+                  "path": ["send-email-sgrid"]
                 },
                 "description": "### Send Email\n\nThis endpoint allows you to send an email to the specified recipients.\n\n#### Request Body\n\n- title (string, optional): The title of the email.\n    \n- emails (array of strings): The list of email addresses to which the email will be sent.\n    \n- subject (string, required): The subject of the email.\n    \n- body (string, required): The body content of the email.\n    \n- config (object):\n    \n    - fromEmail (string, required): The sender's email address.\n        \n    - isHtml (boolean, required): Indicates whether the email body is in HTML format.\n        \n\n#### Response\n\nThe response is in JSON format with the following schema:\n\n``` json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"message\": {\n      \"type\": \"string\"\n    }\n  }\n}\n\n ```"
               },
@@ -10133,12 +9115,8 @@
                 },
                 "url": {
                   "raw": "{{url}}communications/send-otp-pin-point",
-                  "host": [
-                    "{{url}}communications"
-                  ],
-                  "path": [
-                    "send-otp-pin-point"
-                  ]
+                  "host": ["{{url}}communications"],
+                  "path": ["send-otp-pin-point"]
                 },
                 "description": "### Send Email\n\nThis endpoint allows you to send an email to the specified recipients.\n\n#### Request Body\n\n- title (string, optional): The title of the email.\n    \n- emails (array of strings): The list of email addresses to which the email will be sent.\n    \n- subject (string, required): The subject of the email.\n    \n- body (string, required): The body content of the email.\n    \n- config (object):\n    \n    - fromEmail (string, required): The sender's email address.\n        \n    - isHtml (boolean, required): Indicates whether the email body is in HTML format.\n        \n\n#### Response\n\nThe response is in JSON format with the following schema:\n\n``` json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"message\": {\n      \"type\": \"string\"\n    }\n  }\n}\n\n ```"
               },
@@ -10160,12 +9138,8 @@
                 },
                 "url": {
                   "raw": "{{url}}communications/send-email-aws",
-                  "host": [
-                    "{{url}}communications"
-                  ],
-                  "path": [
-                    "send-email-aws"
-                  ]
+                  "host": ["{{url}}communications"],
+                  "path": ["send-email-aws"]
                 },
                 "description": "### Send Email\n\nThis endpoint allows you to send an email to the specified recipients.\n\n#### Request Body\n\n- title (string, optional): The title of the email.\n    \n- emails (array of strings): The list of email addresses to which the email will be sent.\n    \n- subject (string, required): The subject of the email.\n    \n- body (string, required): The body content of the email.\n    \n- config (object):\n    \n    - fromEmail (string, required): The sender's email address.\n        \n    - isHtml (boolean, required): Indicates whether the email body is in HTML format.\n        \n\n#### Response\n\nThe response is in JSON format with the following schema:\n\n``` json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"message\": {\n      \"type\": \"string\"\n    }\n  }\n}\n\n ```"
               },
@@ -10187,12 +9161,8 @@
                 },
                 "url": {
                   "raw": "{{url}}communications/send-notification",
-                  "host": [
-                    "{{url}}communications"
-                  ],
-                  "path": [
-                    "send-notification"
-                  ]
+                  "host": ["{{url}}communications"],
+                  "path": ["send-notification"]
                 }
               },
               "response": []
@@ -10226,12 +9196,8 @@
                 },
                 "url": {
                   "raw": "{{url}}upload/s3",
-                  "host": [
-                    "{{url}}upload"
-                  ],
-                  "path": [
-                    "s3"
-                  ]
+                  "host": ["{{url}}upload"],
+                  "path": ["s3"]
                 },
                 "description": "Uploading single/multiple files is possible"
               },
@@ -10244,12 +9210,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}support/requests",
-                  "host": [
-                    "{{url}}support"
-                  ],
-                  "path": [
-                    "requests"
-                  ]
+                  "host": ["{{url}}support"],
+                  "path": ["requests"]
                 }
               },
               "response": []
@@ -10277,12 +9239,8 @@
                 },
                 "url": {
                   "raw": "{{url}}upload/s3",
-                  "host": [
-                    "{{url}}upload"
-                  ],
-                  "path": [
-                    "s3"
-                  ]
+                  "host": ["{{url}}upload"],
+                  "path": ["s3"]
                 }
               },
               "response": []
@@ -10310,13 +9268,8 @@
                 },
                 "url": {
                   "raw": "{{url}}upload/s3/delete",
-                  "host": [
-                    "{{url}}upload"
-                  ],
-                  "path": [
-                    "s3",
-                    "delete"
-                  ]
+                  "host": ["{{url}}upload"],
+                  "path": ["s3", "delete"]
                 }
               },
               "response": []
@@ -10349,14 +9302,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/users/profile/6a3a55269943372aa2072c66",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "users",
-                    "profile",
-                    "6a3a55269943372aa2072c66"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["users", "profile", "6a3a55269943372aa2072c66"]
                 },
                 "description": "Uploading single/multiple files is possible"
               },
@@ -10385,15 +9332,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/users/profile/:userId/certifications",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "users",
-                    "profile",
-                    ":userId",
-                    "certifications"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["users", "profile", ":userId", "certifications"],
                   "variable": [
                     {
                       "key": "userId",
@@ -10424,9 +9364,7 @@
                 ],
                 "url": {
                   "raw": "{{url}}badges?scope=business",
-                  "host": [
-                    "{{url}}badges"
-                  ],
+                  "host": ["{{url}}badges"],
                   "query": [
                     {
                       "key": "scope",
@@ -10445,9 +9383,7 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}badges",
-                      "host": [
-                        "{{url}}badges"
-                      ]
+                      "host": ["{{url}}badges"]
                     }
                   },
                   "status": "OK",
@@ -10581,12 +9517,8 @@
                 ],
                 "url": {
                   "raw": "{{url}}admin/badges?page=1&limit=100&scope=business",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "badges"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["badges"],
                   "query": [
                     {
                       "key": "page",
@@ -10633,12 +9565,8 @@
                 ],
                 "url": {
                   "raw": "{{url}}badges/Accessibility & Inclusivity",
-                  "host": [
-                    "{{url}}badges"
-                  ],
-                  "path": [
-                    "Accessibility & Inclusivity"
-                  ]
+                  "host": ["{{url}}badges"],
+                  "path": ["Accessibility & Inclusivity"]
                 },
                 "description": "Get badge by name (public access)"
               },
@@ -10650,12 +9578,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}badges/Accessibility & Inclusivity",
-                      "host": [
-                        "{{url}}badges"
-                      ],
-                      "path": [
-                        "Accessibility & Inclusivity"
-                      ]
+                      "host": ["{{url}}badges"],
+                      "path": ["Accessibility & Inclusivity"]
                     }
                   },
                   "status": "OK",
@@ -10789,9 +9713,7 @@
                 },
                 "url": {
                   "raw": "{{url}}badges",
-                  "host": [
-                    "{{url}}badges"
-                  ]
+                  "host": ["{{url}}badges"]
                 },
                 "description": "Add badge (admin only)"
               },
@@ -10821,9 +9743,7 @@
                     },
                     "url": {
                       "raw": "{{url}}badges",
-                      "host": [
-                        "{{url}}badges"
-                      ]
+                      "host": ["{{url}}badges"]
                     }
                   },
                   "status": "Created",
@@ -10957,12 +9877,8 @@
                 },
                 "url": {
                   "raw": "{{url}}badges/6a017a699eab7896993d17a9",
-                  "host": [
-                    "{{url}}badges"
-                  ],
-                  "path": [
-                    "6a017a699eab7896993d17a9"
-                  ]
+                  "host": ["{{url}}badges"],
+                  "path": ["6a017a699eab7896993d17a9"]
                 },
                 "description": "Update badge (admin only)"
               },
@@ -10992,12 +9908,8 @@
                     },
                     "url": {
                       "raw": "{{url}}badges/6a017a699eab7896993d17a9",
-                      "host": [
-                        "{{url}}badges"
-                      ],
-                      "path": [
-                        "6a017a699eab7896993d17a9"
-                      ]
+                      "host": ["{{url}}badges"],
+                      "path": ["6a017a699eab7896993d17a9"]
                     }
                   },
                   "status": "OK",
@@ -11118,12 +10030,8 @@
                 ],
                 "url": {
                   "raw": "{{url}}badges/:name",
-                  "host": [
-                    "{{url}}badges"
-                  ],
-                  "path": [
-                    ":name"
-                  ],
+                  "host": ["{{url}}badges"],
+                  "path": [":name"],
                   "variable": [
                     {
                       "key": "name"
@@ -11159,13 +10067,8 @@
                 },
                 "url": {
                   "raw": "{{url}}badges/6a017a699eab7896993d17a9/option",
-                  "host": [
-                    "{{url}}badges"
-                  ],
-                  "path": [
-                    "6a017a699eab7896993d17a9",
-                    "option"
-                  ]
+                  "host": ["{{url}}badges"],
+                  "path": ["6a017a699eab7896993d17a9", "option"]
                 },
                 "description": "Add badge option (admin only)"
               },
@@ -11195,13 +10098,8 @@
                     },
                     "url": {
                       "raw": "{{url}}badges/6a017a699eab7896993d17a9/option",
-                      "host": [
-                        "{{url}}badges"
-                      ],
-                      "path": [
-                        "6a017a699eab7896993d17a9",
-                        "option"
-                      ]
+                      "host": ["{{url}}badges"],
+                      "path": ["6a017a699eab7896993d17a9", "option"]
                     }
                   },
                   "status": "OK",
@@ -11339,14 +10237,8 @@
                 },
                 "url": {
                   "raw": "{{url}}badges/6a017a699eab7896993d17a9/option/6a017fd161cdba02df30b596",
-                  "host": [
-                    "{{url}}badges"
-                  ],
-                  "path": [
-                    "6a017a699eab7896993d17a9",
-                    "option",
-                    "6a017fd161cdba02df30b596"
-                  ]
+                  "host": ["{{url}}badges"],
+                  "path": ["6a017a699eab7896993d17a9", "option", "6a017fd161cdba02df30b596"]
                 },
                 "description": "Update badge option (admin only)"
               },
@@ -11376,14 +10268,8 @@
                     },
                     "url": {
                       "raw": "{{url}}badges/6a017a699eab7896993d17a9/option/6a017fd161cdba02df30b596",
-                      "host": [
-                        "{{url}}badges"
-                      ],
-                      "path": [
-                        "6a017a699eab7896993d17a9",
-                        "option",
-                        "6a017fd161cdba02df30b596"
-                      ]
+                      "host": ["{{url}}badges"],
+                      "path": ["6a017a699eab7896993d17a9", "option", "6a017fd161cdba02df30b596"]
                     }
                   },
                   "status": "OK",
@@ -11508,14 +10394,8 @@
                 ],
                 "url": {
                   "raw": "{{url}}badges/:name/option/:optionId",
-                  "host": [
-                    "{{url}}badges"
-                  ],
-                  "path": [
-                    ":name",
-                    "option",
-                    ":optionId"
-                  ],
+                  "host": ["{{url}}badges"],
+                  "path": [":name", "option", ":optionId"],
                   "variable": [
                     {
                       "key": "name"
@@ -11547,13 +10427,8 @@
                 ],
                 "url": {
                   "raw": "{{url}}admin/settings/terms-conditions",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "settings",
-                    "terms-conditions"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["settings", "terms-conditions"]
                 }
               },
               "response": [
@@ -11564,12 +10439,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}settings/termsAndConditions",
-                      "host": [
-                        "{{url}}settings"
-                      ],
-                      "path": [
-                        "termsAndConditions"
-                      ]
+                      "host": ["{{url}}settings"],
+                      "path": ["termsAndConditions"]
                     }
                   },
                   "status": "OK",
@@ -11617,13 +10488,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/settings/about-us",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "settings",
-                    "about-us"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["settings", "about-us"]
                 }
               },
               "response": [
@@ -11634,12 +10500,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}settings/aboutUs",
-                      "host": [
-                        "{{url}}settings"
-                      ],
-                      "path": [
-                        "aboutUs"
-                      ]
+                      "host": ["{{url}}settings"],
+                      "path": ["aboutUs"]
                     }
                   },
                   "status": "OK",
@@ -11687,13 +10549,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/settings/privacy-policy",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "settings",
-                    "privacy-policy"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["settings", "privacy-policy"]
                 }
               },
               "response": []
@@ -11714,13 +10571,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/settings/create",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "settings",
-                    "create"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["settings", "create"]
                 }
               },
               "response": []
@@ -11741,14 +10593,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/settings/update/69afa5bda6f1cc2489b083f1",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "settings",
-                    "update",
-                    "69afa5bda6f1cc2489b083f1"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["settings", "update", "69afa5bda6f1cc2489b083f1"]
                 },
                 "description": "Partial update: send only the fields/languages you want to change. Each field accepts an HTML string (stored under the caller's language) or a per-language object. The :id in the URL is ignored (single settings document, upserted)."
               },
@@ -11771,13 +10617,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/settings/faqs?page=1&limit=10",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "settings",
-                    "faqs"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["settings", "faqs"],
                   "query": [
                     {
                       "key": "page",
@@ -11823,13 +10664,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/settings/faqs",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "settings",
-                    "faqs"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["settings", "faqs"]
                 }
               },
               "response": []
@@ -11860,14 +10696,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/settings/faqs/66d58d5172e16ac86d740e6c",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "settings",
-                    "faqs",
-                    "66d58d5172e16ac86d740e6c"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["settings", "faqs", "66d58d5172e16ac86d740e6c"]
                 }
               },
               "response": []
@@ -11889,14 +10719,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/settings/faqs/66d58d5172e16ac86d740e6c",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "settings",
-                    "faqs",
-                    "66d58d5172e16ac86d740e6c"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["settings", "faqs", "66d58d5172e16ac86d740e6c"]
                 }
               },
               "response": []
@@ -11919,9 +10743,7 @@
                 ],
                 "url": {
                   "raw": "{{url}}categories?page=1&limit=10",
-                  "host": [
-                    "{{url}}categories"
-                  ],
+                  "host": ["{{url}}categories"],
                   "query": [
                     {
                       "key": "page",
@@ -11966,12 +10788,8 @@
                     ],
                     "url": {
                       "raw": "{{url}}admin/categories",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "categories"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["categories"]
                     }
                   },
                   "status": "OK",
@@ -12093,12 +10911,8 @@
                 ],
                 "url": {
                   "raw": "{{url}}categories/69e205ea0a63531cebe9e560",
-                  "host": [
-                    "{{url}}categories"
-                  ],
-                  "path": [
-                    "69e205ea0a63531cebe9e560"
-                  ],
+                  "host": ["{{url}}categories"],
+                  "path": ["69e205ea0a63531cebe9e560"],
                   "query": [
                     {
                       "key": "keyword",
@@ -12123,12 +10937,8 @@
                     ],
                     "url": {
                       "raw": "{{url}}admin/categories",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "categories"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["categories"]
                     }
                   },
                   "status": "OK",
@@ -12259,9 +11069,7 @@
                 },
                 "url": {
                   "raw": "{{url}}categories",
-                  "host": [
-                    "{{url}}categories"
-                  ]
+                  "host": ["{{url}}categories"]
                 }
               },
               "response": [
@@ -12287,9 +11095,7 @@
                     },
                     "url": {
                       "raw": "{{url}}categories",
-                      "host": [
-                        "{{url}}categories"
-                      ]
+                      "host": ["{{url}}categories"]
                     }
                   },
                   "status": "Created",
@@ -12420,12 +11226,8 @@
                 },
                 "url": {
                   "raw": "{{url}}categories/{{categoryId}}",
-                  "host": [
-                    "{{url}}categories"
-                  ],
-                  "path": [
-                    "{{categoryId}}"
-                  ]
+                  "host": ["{{url}}categories"],
+                  "path": ["{{categoryId}}"]
                 }
               },
               "response": [
@@ -12451,13 +11253,8 @@
                     },
                     "url": {
                       "raw": "{{url}}admin/categories/{{categoryId}}",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "categories",
-                        "{{categoryId}}"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["categories", "{{categoryId}}"]
                     }
                   },
                   "status": "OK",
@@ -12579,12 +11376,8 @@
                 ],
                 "url": {
                   "raw": "{{url}}categories/{{categoryId}}",
-                  "host": [
-                    "{{url}}categories"
-                  ],
-                  "path": [
-                    "{{categoryId}}"
-                  ]
+                  "host": ["{{url}}categories"],
+                  "path": ["{{categoryId}}"]
                 }
               },
               "response": []
@@ -12611,12 +11404,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/support?page=1&limit=10",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "support"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["support"],
                   "query": [
                     {
                       "key": "page",
@@ -12649,12 +11438,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/support?page=1&limit=10",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "support"
-                      ],
+                      "host": ["{{url}}admin"],
+                      "path": ["support"],
                       "query": [
                         {
                           "key": "page",
@@ -12693,13 +11478,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/support/66d58d5172e16ac86d740e6c",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "support",
-                    "66d58d5172e16ac86d740e6c"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["support", "66d58d5172e16ac86d740e6c"]
                 }
               },
               "response": [
@@ -12710,13 +11490,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/support/66d58d5172e16ac86d740e6c",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "support",
-                        "66d58d5172e16ac86d740e6c"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["support", "66d58d5172e16ac86d740e6c"]
                     }
                   },
                   "status": "OK",
@@ -12733,13 +11508,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/support/66d58d5172e16ac86d740e6c",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "support",
-                        "66d58d5172e16ac86d740e6c"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["support", "66d58d5172e16ac86d740e6c"]
                     }
                   },
                   "status": "Not Found",
@@ -12777,14 +11547,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/support/66d58d5172e16ac86d740e6c/status",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "support",
-                    "66d58d5172e16ac86d740e6c",
-                    "status"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["support", "66d58d5172e16ac86d740e6c", "status"]
                 }
               },
               "response": [
@@ -12804,14 +11568,8 @@
                     },
                     "url": {
                       "raw": "{{url}}admin/support/66d58d5172e16ac86d740e6c/status",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "support",
-                        "66d58d5172e16ac86d740e6c",
-                        "status"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["support", "66d58d5172e16ac86d740e6c", "status"]
                     }
                   },
                   "status": "OK",
@@ -12840,13 +11598,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/support/66d58d5172e16ac86d740e6c",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "support",
-                    "66d58d5172e16ac86d740e6c"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["support", "66d58d5172e16ac86d740e6c"]
                 }
               },
               "response": [
@@ -12857,13 +11610,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/support/66d58d5172e16ac86d740e6c",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "support",
-                        "66d58d5172e16ac86d740e6c"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["support", "66d58d5172e16ac86d740e6c"]
                     }
                   },
                   "status": "OK",
@@ -12897,12 +11645,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/help-center?page=1&limit=10",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "help-center"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["help-center"],
                   "query": [
                     {
                       "key": "page",
@@ -12935,12 +11679,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/help-center?page=1&limit=10",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "help-center"
-                      ],
+                      "host": ["{{url}}admin"],
+                      "path": ["help-center"],
                       "query": [
                         {
                           "key": "page",
@@ -12979,13 +11719,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/help-center/66d58d5172e16ac86d740e6c",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "help-center",
-                    "66d58d5172e16ac86d740e6c"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["help-center", "66d58d5172e16ac86d740e6c"]
                 }
               },
               "response": [
@@ -12996,13 +11731,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/help-center/66d58d5172e16ac86d740e6c",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "help-center",
-                        "66d58d5172e16ac86d740e6c"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["help-center", "66d58d5172e16ac86d740e6c"]
                     }
                   },
                   "status": "OK",
@@ -13040,12 +11770,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/help-center",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "help-center"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["help-center"]
                 }
               },
               "response": [
@@ -13065,12 +11791,8 @@
                     },
                     "url": {
                       "raw": "{{url}}admin/help-center",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "help-center"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["help-center"]
                     }
                   },
                   "status": "Created",
@@ -13108,13 +11830,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/help-center/66d58d5172e16ac86d740e6c",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "help-center",
-                    "66d58d5172e16ac86d740e6c"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["help-center", "66d58d5172e16ac86d740e6c"]
                 }
               },
               "response": [
@@ -13134,13 +11851,8 @@
                     },
                     "url": {
                       "raw": "{{url}}admin/help-center/66d58d5172e16ac86d740e6c",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "help-center",
-                        "66d58d5172e16ac86d740e6c"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["help-center", "66d58d5172e16ac86d740e6c"]
                     }
                   },
                   "status": "OK",
@@ -13169,13 +11881,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/help-center/66d58d5172e16ac86d740e6c",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "help-center",
-                    "66d58d5172e16ac86d740e6c"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["help-center", "66d58d5172e16ac86d740e6c"]
                 }
               },
               "response": [
@@ -13186,13 +11893,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/help-center/66d58d5172e16ac86d740e6c",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "help-center",
-                        "66d58d5172e16ac86d740e6c"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["help-center", "66d58d5172e16ac86d740e6c"]
                     }
                   },
                   "status": "OK",
@@ -13226,12 +11928,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/customers?page=1&limit=10",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "customers"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["customers"],
                   "query": [
                     {
                       "key": "page",
@@ -13264,12 +11962,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/customers?page=1&limit=10",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "customers"
-                      ],
+                      "host": ["{{url}}admin"],
+                      "path": ["customers"],
                       "query": [
                         {
                           "key": "page",
@@ -13308,13 +12002,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/customers/6a436eef8a89f271b47f64ee",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "customers",
-                    "6a436eef8a89f271b47f64ee"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["customers", "6a436eef8a89f271b47f64ee"]
                 }
               },
               "response": [
@@ -13325,13 +12014,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/customers/6a436eef8a89f271b47f64ee",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "customers",
-                        "6a436eef8a89f271b47f64ee"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["customers", "6a436eef8a89f271b47f64ee"]
                     }
                   },
                   "status": "OK",
@@ -13348,13 +12032,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/customers/6a436eef8a89f271b47f64ee",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "customers",
-                        "6a436eef8a89f271b47f64ee"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["customers", "6a436eef8a89f271b47f64ee"]
                     }
                   },
                   "status": "Not Found",
@@ -13383,14 +12062,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/customers/6a436eef8a89f271b47f64ee/bookings?page=1&limit=10",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "customers",
-                    "6a436eef8a89f271b47f64ee",
-                    "bookings"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["customers", "6a436eef8a89f271b47f64ee", "bookings"],
                   "query": [
                     {
                       "key": "page",
@@ -13434,14 +12107,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/customers/6a436eef8a89f271b47f64ee/bookings?page=1&limit=10",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "customers",
-                        "6a436eef8a89f271b47f64ee",
-                        "bookings"
-                      ],
+                      "host": ["{{url}}admin"],
+                      "path": ["customers", "6a436eef8a89f271b47f64ee", "bookings"],
                       "query": [
                         {
                           "key": "page",
@@ -13485,12 +12152,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/bookings?page=1&limit=10",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "bookings"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["bookings"],
                   "query": [
                     {
                       "key": "page",
@@ -13546,12 +12209,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/bookings?page=1&limit=10",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "bookings"
-                      ],
+                      "host": ["{{url}}admin"],
+                      "path": ["bookings"],
                       "query": [
                         {
                           "key": "page",
@@ -13590,13 +12249,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/bookings/6a4751d13fa24927be3cf7f9",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "bookings",
-                    "6a4751d13fa24927be3cf7f9"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["bookings", "6a4751d13fa24927be3cf7f9"]
                 }
               },
               "response": [
@@ -13607,13 +12261,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/bookings/6a4751d13fa24927be3cf7f9",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "bookings",
-                        "6a4751d13fa24927be3cf7f9"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["bookings", "6a4751d13fa24927be3cf7f9"]
                     }
                   },
                   "status": "OK",
@@ -13630,13 +12279,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/bookings/6a4751d13fa24927be3cf7f9",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "bookings",
-                        "6a4751d13fa24927be3cf7f9"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["bookings", "6a4751d13fa24927be3cf7f9"]
                     }
                   },
                   "status": "Not Found",
@@ -13670,14 +12314,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/services?page=1&limit=10",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "services"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "services"],
                   "query": [
                     {
                       "key": "page",
@@ -13698,14 +12336,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/services",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "services"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "services"]
                     }
                   },
                   "status": "OK",
@@ -13734,14 +12366,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/packages?page=1&limit=10",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "packages"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "packages"],
                   "query": [
                     {
                       "key": "page",
@@ -13762,14 +12388,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/packages",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "packages"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "packages"]
                     }
                   },
                   "status": "OK",
@@ -13798,14 +12418,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/promotions?page=1&limit=10",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "promotions"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "promotions"],
                   "query": [
                     {
                       "key": "page",
@@ -13826,14 +12440,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/promotions",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "promotions"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "promotions"]
                     }
                   },
                   "status": "OK",
@@ -13862,14 +12470,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/operating-hours",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "operating-hours"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "operating-hours"]
                 }
               },
               "response": [
@@ -13880,14 +12482,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/operating-hours",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "operating-hours"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "operating-hours"]
                     }
                   },
                   "status": "OK",
@@ -13925,14 +12521,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/operating-hours",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "operating-hours"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "operating-hours"]
                 }
               },
               "response": [
@@ -13952,14 +12542,8 @@
                     },
                     "url": {
                       "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/operating-hours",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "operating-hours"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "operating-hours"]
                     }
                   },
                   "status": "OK",
@@ -13985,14 +12569,8 @@
                     },
                     "url": {
                       "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/operating-hours",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "operating-hours"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "operating-hours"]
                     }
                   },
                   "status": "Bad Request",
@@ -14021,14 +12599,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/bookings?page=1&limit=10",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "bookings"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "bookings"],
                   "query": [
                     {
                       "key": "page",
@@ -14055,14 +12627,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/bookings",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "bookings"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "bookings"]
                     }
                   },
                   "status": "OK",
@@ -14091,14 +12657,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/reviews?page=1&limit=10",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "reviews"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "reviews"],
                   "query": [
                     {
                       "key": "page",
@@ -14125,14 +12685,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/reviews",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "reviews"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "reviews"]
                     }
                   },
                   "status": "OK",
@@ -14161,15 +12715,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/reviews/66d58d5172e16ac86d740e6c",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    "6a46575cc1c2fd4a0cc6c45b",
-                    "reviews",
-                    "66d58d5172e16ac86d740e6c"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "reviews", "66d58d5172e16ac86d740e6c"]
                 }
               },
               "response": [
@@ -14180,15 +12727,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/reviews/66d58d5172e16ac86d740e6c",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "reviews",
-                        "66d58d5172e16ac86d740e6c"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "reviews", "66d58d5172e16ac86d740e6c"]
                     }
                   },
                   "status": "OK",
@@ -14205,15 +12745,8 @@
                     "header": [],
                     "url": {
                       "raw": "{{url}}admin/businesses/6a46575cc1c2fd4a0cc6c45b/reviews/66d58d5172e16ac86d740e6c",
-                      "host": [
-                        "{{url}}admin"
-                      ],
-                      "path": [
-                        "businesses",
-                        "6a46575cc1c2fd4a0cc6c45b",
-                        "reviews",
-                        "66d58d5172e16ac86d740e6c"
-                      ]
+                      "host": ["{{url}}admin"],
+                      "path": ["businesses", "6a46575cc1c2fd4a0cc6c45b", "reviews", "66d58d5172e16ac86d740e6c"]
                     }
                   },
                   "status": "Not Found",
@@ -14247,12 +12780,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/tags",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "tags"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["tags"]
                 }
               },
               "response": []
@@ -14274,13 +12803,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/tags/{{tagId}}",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "tags",
-                    "{{tagId}}"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["tags", "{{tagId}}"]
                 }
               },
               "response": []
@@ -14316,12 +12840,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/tags",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "tags"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["tags"]
                 }
               },
               "response": []
@@ -14357,13 +12877,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/tags/{{tagId}}",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "tags",
-                    "{{tagId}}"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["tags", "{{tagId}}"]
                 }
               },
               "response": []
@@ -14385,13 +12900,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/tags/{{tagId}}",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "tags",
-                    "{{tagId}}"
-                  ]
+                  "host": ["{{url}}admin"],
+                  "path": ["tags", "{{tagId}}"]
                 }
               },
               "response": []
@@ -14418,15 +12928,8 @@
                 "header": [],
                 "url": {
                   "raw": "{{url}}admin/businesses/:businessId/reviews/:reviewId",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    ":businessId",
-                    "reviews",
-                    ":reviewId"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", ":businessId", "reviews", ":reviewId"],
                   "variable": [
                     {
                       "key": "businessId",
@@ -14473,16 +12976,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/businesses/:businessId/reviews/:reviewId/status",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    ":businessId",
-                    "reviews",
-                    ":reviewId",
-                    "status"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", ":businessId", "reviews", ":reviewId", "status"],
                   "variable": [
                     {
                       "key": "businessId",
@@ -14529,16 +13024,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/businesses/:businessId/reviews/:reviewId/status",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    ":businessId",
-                    "reviews",
-                    ":reviewId",
-                    "status"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", ":businessId", "reviews", ":reviewId", "status"],
                   "variable": [
                     {
                       "key": "businessId",
@@ -14585,16 +13072,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/businesses/:businessId/reviews/:reviewId/status",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    ":businessId",
-                    "reviews",
-                    ":reviewId",
-                    "status"
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", ":businessId", "reviews", ":reviewId", "status"],
                   "variable": [
                     {
                       "key": "businessId",
@@ -14639,14 +13118,8 @@
                 },
                 "url": {
                   "raw": "{{url}}admin/businesses/reviews/?status=pending",
-                  "host": [
-                    "{{url}}admin"
-                  ],
-                  "path": [
-                    "businesses",
-                    "reviews",
-                    ""
-                  ],
+                  "host": ["{{url}}admin"],
+                  "path": ["businesses", "reviews", ""],
                   "query": [
                     {
                       "key": "scope",
@@ -14720,16 +13193,8 @@
             "url": {
               "raw": "https://app.ticketmaster.com/discovery/v2/events.json?size=5&apikey=o5G3JW9CBaVciIq8seXtfOwIVyc2Xbj1",
               "protocol": "https",
-              "host": [
-                "app",
-                "ticketmaster",
-                "com"
-              ],
-              "path": [
-                "discovery",
-                "v2",
-                "events.json"
-              ],
+              "host": ["app", "ticketmaster", "com"],
+              "path": ["discovery", "v2", "events.json"],
               "query": [
                 {
                   "key": "size",
@@ -14773,16 +13238,8 @@
             "url": {
               "raw": "https://app.ticketmaster.com/discovery/v2/events.json?size=5&apikey=o5G3JW9CBaVciIq8seXtfOwIVyc2Xbj1&page=1&geoPoint=40.7306,-73.9352&radius=20&unit=miles",
               "protocol": "https",
-              "host": [
-                "app",
-                "ticketmaster",
-                "com"
-              ],
-              "path": [
-                "discovery",
-                "v2",
-                "events.json"
-              ],
+              "host": ["app", "ticketmaster", "com"],
+              "path": ["discovery", "v2", "events.json"],
               "query": [
                 {
                   "key": "size",
@@ -14834,9 +13291,7 @@
         "type": "text/javascript",
         "packages": {},
         "requests": {},
-        "exec": [
-          ""
-        ]
+        "exec": [""]
       }
     },
     {
@@ -14845,9 +13300,7 @@
         "type": "text/javascript",
         "packages": {},
         "requests": {},
-        "exec": [
-          ""
-        ]
+        "exec": [""]
       }
     }
   ],

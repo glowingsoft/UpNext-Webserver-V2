@@ -892,15 +892,23 @@ const socialAuth = async (req, res) => {
         });
       }
 
-      if (existingUser.accountState.roles.includes(userType) === false) {
-        return sendResponse({
-          res,
-          statusCode: 403,
-          translationKey: `dont_have_profile_for_${userType}`,
-        });
-      }
-      if (existingUser.accountState.userType !== userType) {
-        existingUser.accountState.userType = userType;
+      // userType is optional on login (same as /login): only enforce the role
+      // check when the client actually asked for one.
+      if (userType) {
+        const roles = existingUser.accountState.roles || [];
+        if (roles.length === 0) {
+          // Legacy social signups were saved with roles: [] — grant the requested one
+          existingUser.accountState.roles = [userType];
+        } else if (!roles.includes(userType)) {
+          return sendResponse({
+            res,
+            statusCode: 403,
+            translationKey: `dont_have_profile_for_${userType}`,
+          });
+        }
+        if (existingUser.accountState.userType !== userType) {
+          existingUser.accountState.userType = userType;
+        }
       }
 
       // Check if the social ID is already linked, if not, link it
