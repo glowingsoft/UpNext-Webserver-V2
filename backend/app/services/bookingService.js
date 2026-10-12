@@ -856,6 +856,7 @@ const getBusinessBookings = async ({
   if (userId && mongoose.Types.ObjectId.isValid(userId)) {
     filter.user = new mongoose.Types.ObjectId(String(userId));
   }
+  console.log("Business bookings dateRange filter:", dateRange, "date:", date);
   if (dateRange) {
     filter.date = { $gte: dateRange.start, $lte: dateRange.end };
   } else if (date) {

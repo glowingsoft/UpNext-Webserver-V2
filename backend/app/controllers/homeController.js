@@ -171,7 +171,7 @@ const getCustomerHome = async ({ req }) => {
       page: 1,
       limit: 5,
       filter: {},
-      date: req.query.date || null,
+      date: req.query.date || new Date(),
       locale: req.language || req.user?.language,
       keyword: req.query.keyword || "",
     });
@@ -274,8 +274,8 @@ const getBusinessHome = async ({ req }) => {
     const businessProfileReq = getBusinesses({ filter: { _id: businessId } });
     const getBookingStatsReq = Bookings.countDocuments({ business: businessId, date: { $gte: new Date() } });
     const statsReq = getBusinessStats(user);
-    // Today's schedule: bookings dated today in the business's timezone
-    // (Booking.date is UTC midnight of the calendar day), minus dead ones.
+    // Booking.date is stored as UTC midnight for its calendar date. Use the
+    // business-local date label, then match that date key in UTC.
     const todayLabel = moment.tz(new Date(), timezone).format("YYYY-MM-DD");
     const bookingReq = getBusinessBookings({
       businessId,
