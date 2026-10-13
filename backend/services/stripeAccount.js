@@ -426,6 +426,7 @@ module.exports = {
   syncOnboardingStatusByAccountId,
   getConnectBalance,
   getPendingReleaseWindow,
+  getOrCreateCustomer,
   attachPaymentMethod,
   detachPaymentMethod,
   listPaymentMethods,

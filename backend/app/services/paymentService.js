@@ -107,7 +107,7 @@ const authorizeBookingPayment = async ({ amount, user, entity, paymentMethod, bo
     paymentMethodId: paymentMethod,
     destinationAccountId: stripeInfo.accountId,
     applicationFee: applicationFeeAmount,
-    transferGroup: (draftId || bookingId) ? String(draftId || bookingId) : undefined,
+    transferGroup: draftId || bookingId ? String(draftId || bookingId) : undefined,
     currency: user.currency || "usd",
     metadata: {
       paymentId: paymentId.toString(),
@@ -274,9 +274,7 @@ const settleOutstandingDebt = async ({ user, bookingId, paymentMethod }) => {
   // unusable, charge platform-only anyway — the customer must always be able
   // to clear the debt lock; the transfer can be reconciled manually.
   const businessProfile = await BusinessProfile.findById(booking.business).select("user").lean();
-  const businessOwner = businessProfile
-    ? await User.findById(businessProfile.user).select("stripe").lean()
-    : null;
+  const businessOwner = businessProfile ? await User.findById(businessProfile.user).select("stripe").lean() : null;
   const destinationAccountId = String(businessOwner?.stripe?.accountId || "").startsWith("acct_")
     ? businessOwner.stripe.accountId
     : undefined;
