@@ -1,12 +1,24 @@
 const HelpCenter = require("@models/HelpCenter");
-const { sendResponse, parsePaginationParams, generateMeta, validateParams, cleanfiles } = require("@utils/responseUtil");
-const { DEFAULT_LANG, acceptedLanguageCodes, getTranslatedValue, resolveExplicitLanguage } = require("../services/settingsService");
+const {
+  sendResponse,
+  parsePaginationParams,
+  generateMeta,
+  validateParams,
+  cleanfiles,
+} = require("@utils/responseUtil");
+const {
+  DEFAULT_LANG,
+  acceptedLanguageCodes,
+  getTranslatedValue,
+  resolveExplicitLanguage,
+} = require("../services/settingsService");
+const { getFullImageUrl } = require("@utils/imageHelper");
 
 const formatItem = (item, lang) => ({
   _id: item._id,
   title: getTranslatedValue(item.title, lang),
   description: getTranslatedValue(item.description, lang),
-  coverImage: item.coverImage,
+  coverImage: getFullImageUrl(item.coverImage),
   status: item.status,
   createdAt: item.createdAt,
   updatedAt: item.updatedAt,
@@ -30,7 +42,11 @@ const getHelpCenterItemsAdmin = async (req, res) => {
     if (status) query.status = status;
 
     const [items, totalRecords] = await Promise.all([
-      HelpCenter.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+      HelpCenter.find(query)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
       HelpCenter.countDocuments(query),
     ]);
 
@@ -74,7 +90,11 @@ const getHelpCenterItems = async (req, res) => {
     const query = { ...buildKeywordQuery(keyword), status: "active" };
 
     const [items, totalRecords] = await Promise.all([
-      HelpCenter.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+      HelpCenter.find(query)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
       HelpCenter.countDocuments(query),
     ]);
 
