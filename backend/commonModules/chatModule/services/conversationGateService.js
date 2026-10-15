@@ -14,61 +14,42 @@ const TERMINAL_BOOKING_STATUSES = ["completed", "canceled", "expired"];
 // User id). Rejects same-type pairs (user<->user, business<->business).
 
 const resolveChatPair = async (userAId, userBId) => {
-  const [userA, userB] = await Promise.all([
-    User.findById(userAId).select("accountState").lean(),
-    User.findById(userBId).select("accountState").lean(),
+  const [userA, userB, ...profiles] = await Promise.all([
+    User.findById(userAId).select("accountState.roles").lean(),
+    User.findById(userBId).select("accountState.roles").lean(),
+    UserProfile.findOne({ user: userAId }).select("_id status").lean(),
+    UserProfile.findOne({ user: userBId }).select("_id status").lean(),
+    BusinessProfile.findOne({ user: userAId }).select("_id status").lean(),
+    BusinessProfile.findOne({ user: userBId }).select("_id status").lean(),
   ]);
 
-  if (!userA || !userB) {
-    return { error: "participant_not_found" };
-  }
+  if (!userA || !userB) return { error: "participant_not_found" };
 
-  const [userProfileA, userProfileB, businessA, businessB] = await Promise.all([
-    UserProfile.findOne({ user: userAId }).lean(),
-    UserProfile.findOne({ user: userBId }).lean(),
-    BusinessProfile.findOne({ user: userAId }).lean(),
-    BusinessProfile.findOne({ user: userBId }).lean(),
-  ]);
+  const [profileA, profileB, businessA, businessB] = profiles;
 
-  const hasRole = (user, role) => user.accountState?.roles?.includes(role);
+  const getType = (user, profile, business) => {
+    const roles = user.accountState?.roles || [];
 
-  const isVerified = (profile) => profile?.isVerified === true;
+    if (roles.includes("business") && business?.status === "active") return "business";
 
-  const getParticipantType = (user, userProfile, businessProfile) => {
-    const hasUserRole = hasRole(user, "user");
-    const hasBusinessRole = hasRole(user, "business");
-
-    if (hasBusinessRole && isVerified(businessProfile)) {
-      return "business";
-    }
-
-    if (hasUserRole && isVerified(userProfile)) {
-      return "user";
-    }
+    if (roles.includes("user") && profile?.status === "active") return "user";
 
     return null;
   };
 
-  const typeA = getParticipantType(userA, userProfileA, businessA);
-  const typeB = getParticipantType(userB, userProfileB, businessB);
+  const typeA = getType(userA, profileA, businessA);
+  const typeB = getType(userB, profileB, businessB);
 
-  if (!typeA || !typeB) {
-    return { error: "valid_verified_profile_required" };
-  }
+  if (!typeA || !typeB) return { error: "valid_verified_profile_required" };
 
-  if (typeA === typeB) {
-    return { error: "chat_requires_user_and_business" };
-  }
+  if (typeA === typeB) return { error: "chat_requires_user_and_business" };
 
-  const customerUserId = typeA === "user" ? userAId : userBId;
-  const businessUserId = typeA === "business" ? userAId : userBId;
-
-  const businessProfileId = typeA === "business" ? businessA._id : businessB._id;
+  const isABusiness = typeA === "business";
 
   return {
-    customerUserId,
-    businessUserId,
-    businessProfileId,
+    customerUserId: isABusiness ? userBId : userAId,
+    businessUserId: isABusiness ? userAId : userBId,
+    businessProfileId: isABusiness ? businessA._id : businessB._id,
   };
 };
 /**
