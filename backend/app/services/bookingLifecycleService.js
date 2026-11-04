@@ -236,6 +236,7 @@ const runStatusTransitionCron = async () => {
 
   // 1) 30-minute pre-session reminder (once)
   const scheduled = await Booking.find({
+    mode: "scheduled",
     status: "scheduled",
     date: { $gte: start, $lte: end },
     preStartReminderSentAt: null,

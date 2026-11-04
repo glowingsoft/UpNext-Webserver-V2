@@ -22,6 +22,7 @@
     "update:alias": "node aliasConfig/update-aliases.js",
     "gen:secrets:helper": "node backend/helperUtils/jwtSecret.js",
     "seed:badges": "node scripts/importBadges.js",
+    "db:indexes": "node scripts/createIndexes.js",
     "migrate:operating-hours": "node scripts/migrateOperatingHours.js",
     "migrate:service-slots": "node scripts/migrateServiceSlots.js",
     "migrate:business-slugs": "node scripts/backfillBusinessSlugs.js",

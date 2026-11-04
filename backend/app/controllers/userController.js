@@ -834,7 +834,7 @@ const createOrUpdateBusinessProfile = async (req, res) => {
       const needToVerifyList = ["Licensed Professional"];
       const needsVerification = categoryObjs.some((c) => needToVerifyList.includes(c?.translations?.en || c?.name));
       const certStatus = existingProfile?.certifications?.status;
-      if (needsVerification && !["approved", "rejected"].includes(certStatus)) {
+      if (needsVerification && certStatus === "pending") {
         updateData.status = "pending";
       }
     }

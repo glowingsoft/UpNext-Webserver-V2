@@ -11,10 +11,29 @@ const BusinessProfile = require("@models/BusinessProfile");
 const { getFullImageUrl } = require("@utils/imageHelper");
 const { resolveBadgeOptionName } = require("@utils/badgeUtil");
 const { emitCertificationStatus } = require("@socketIo/certificationSocketEmitter");
+const Booking = require("@models/Bookings");
+const BookingDraft = require("@models/BookingDraft");
+const Payment = require("@models/Payment");
+const { Services } = require("@models/Services");
+const { Packages } = require("@models/Packages");
+const { Promotion } = require("@models/Promotions");
+const Review = require("@models/Review");
+const PromotionUsage = require("@models/PromotionUsage");
+const Portfolio = require("@models/Portfolios");
+const ServiceCategory = require("@models/ServiceCategory");
+const BusinessAnalyticsEvent = require("@models/BusinessAnalyticsEvent");
+const Card = require("@models/Card");
+const { Devices } = require("@models/Devices");
+const { Session, revokeAllSessions } = require("@models/Session");
+const Traffic = require("@models/Traffic");
+const SupportRequest = require("@models/SupportRequest");
+const Conversation = require("../../commonModules/chatModule/models/Conversation");
+const Message = require("../../commonModules/chatModule/models/Message");
+const { escapeRegExp } = require("@utils/regexUtil");
 // Relative, not @notificationsUtil — that alias points at a path that no
 // longer exists (the file moved under controllers/), so it throws on require.
 const { sendUserNotifications } = require("../../commonModules/controllers/communicationController");
-const { NotificationTypes } = require("@models/Notifications");
+const { NotificationExp, NotificationTypes } = require("@models/Notifications");
 // Path to the JSON file
 // const currenciesFilePath = path.join(__dirname, "@assets/currencies/currencies.json");
 
@@ -750,6 +769,248 @@ const reviewCertifications = async (req, res) => {
   }
 };
 
+const getUserDeletionImpact = async (user) => {
+  const userId = user._id;
+  const [userProfileCount, businessProfiles] = await Promise.all([
+    UserProfile.countDocuments({ user: userId }),
+    BusinessProfile.find({ user: userId }).select("_id").lean(),
+  ]);
+  const businessIds = businessProfiles.map((profile) => profile._id);
+  const businessOwnerClause = businessIds.length ? [{ business: { $in: businessIds } }] : [];
+  const bookingOwnerFilter = { $or: [{ user: userId }, ...businessOwnerClause] };
+  const paymentOwnerFilter = { $or: [{ user: userId }, ...businessOwnerClause] };
+  const reviewOwnerFilter = { $or: [{ subject: userId }, ...businessOwnerClause] };
+  const businessRecordsFilter = { business: { $in: businessIds } };
+  const pendingBookingPaymentStatuses = ["pending", "vaulted", "authorized", "requires_payment_fix"];
+
+  const [
+    bookings,
+    activeBookings,
+    ongoingBookings,
+    pendingBookingPayments,
+    outstandingDebts,
+    payments,
+    pendingPayments,
+    bookingDrafts,
+    services,
+    packages,
+    reviews,
+    promotions,
+    promotionUsages,
+    portfolios,
+    serviceCategories,
+    analyticsEvents,
+    cards,
+    notifications,
+    conversations,
+    messages,
+    sessions,
+    devices,
+    traffic,
+    supportRequests,
+    accountReferences,
+  ] = await Promise.all([
+    Booking.countDocuments(bookingOwnerFilter),
+    Booking.countDocuments({
+      $and: [bookingOwnerFilter, { status: { $in: ["requested", "scheduled", "ongoing"] } }],
+    }),
+    Booking.countDocuments({ $and: [bookingOwnerFilter, { status: "ongoing" }] }),
+    Booking.countDocuments({
+      $and: [bookingOwnerFilter, { paymentStatus: { $in: pendingBookingPaymentStatuses } }],
+    }),
+    Booking.countDocuments({ $and: [bookingOwnerFilter, { paymentStatus: "failed" }] }),
+    Payment.countDocuments(paymentOwnerFilter),
+    Payment.countDocuments({ $and: [paymentOwnerFilter, { status: { $in: ["pending", "authorized"] } }] }),
+    BookingDraft.countDocuments(bookingOwnerFilter),
+    Services.countDocuments(businessRecordsFilter),
+    Packages.countDocuments(businessRecordsFilter),
+    Review.countDocuments(reviewOwnerFilter),
+    Promotion.countDocuments(businessRecordsFilter),
+    PromotionUsage.countDocuments({ user: userId }),
+    Portfolio.countDocuments(businessRecordsFilter),
+    ServiceCategory.countDocuments(businessRecordsFilter),
+    BusinessAnalyticsEvent.countDocuments({
+      $or: [{ user: userId }, ...businessOwnerClause],
+    }),
+    Card.countDocuments({ user: userId }),
+    NotificationExp.countDocuments({ $or: [{ receiverId: userId }, { subjectId: userId }] }),
+    Conversation.countDocuments({ $or: [{ "participants.user": userId }, { admins: userId }] }),
+    Message.countDocuments({ $or: [{ senderId: userId }, { "readBy.userId": userId }] }),
+    Session.countDocuments({ userId }),
+    Devices.countDocuments({ userId }),
+    Traffic.countDocuments({ profileId: userId }),
+    SupportRequest.countDocuments({
+      email: { $regex: `^${escapeRegExp(user.email || "")}$`, $options: "i" },
+    }),
+    User.countDocuments({
+      _id: { $ne: userId },
+      $or: [{ blockedUsers: userId }, { reportedBy: userId }],
+    }),
+  ]);
+
+  const affectedRecords = {
+    user: 1,
+    userProfiles: userProfileCount,
+    businessProfiles: businessProfiles.length,
+    bookings: {
+      total: bookings,
+      active: activeBookings,
+      ongoing: ongoingBookings,
+      pendingPayments: pendingBookingPayments,
+      outstandingDebts,
+    },
+    payments: { total: payments, pending: pendingPayments },
+    bookingDrafts,
+    services,
+    packages,
+    reviews,
+    promotions,
+    promotionUsages,
+    portfolios,
+    serviceCategories,
+    analyticsEvents,
+    cards,
+    notifications,
+    conversations,
+    messages,
+    sessions,
+    devices,
+    traffic,
+    supportRequests,
+    accountReferences,
+  };
+
+  const blockingReasons = [];
+  if (activeBookings) {
+    blockingReasons.push({
+      code: "active_bookings",
+      translationKey: "user_deletion_blocked_active_bookings",
+      count: activeBookings,
+    });
+  }
+  if (pendingBookingPayments || pendingPayments) {
+    blockingReasons.push({
+      code: "pending_payments",
+      translationKey: "user_deletion_blocked_pending_payments",
+      bookingCount: pendingBookingPayments,
+      paymentCount: pendingPayments,
+    });
+  }
+  if (outstandingDebts) {
+    blockingReasons.push({
+      code: "outstanding_booking_debts",
+      translationKey: "user_deletion_blocked_outstanding_debts",
+      count: outstandingDebts,
+    });
+  }
+  if (bookingDrafts) {
+    blockingReasons.push({
+      code: "booking_checkouts_in_progress",
+      translationKey: "user_deletion_blocked_checkouts",
+      count: bookingDrafts,
+    });
+  }
+  if (user.accountState?.status === "hardDeleted") {
+    blockingReasons.push({
+      code: "account_already_deleted",
+      translationKey: "user_deletion_blocked_already_deleted",
+    });
+  }
+
+  return {
+    isDeletable: blockingReasons.length === 0,
+    affectedRecords,
+    blockingReasons,
+  };
+};
+
+const checkUserDeletionEligibility = async (req, res) => {
+  const { userId } = req.params;
+  if (!validateParams(req, res, { pathParams: ["userId"], objectIdFields: ["userId"] })) return;
+
+  try {
+    const user = await User.findById(userId).select("_id email accountState.status").lean();
+    if (!user) {
+      return sendResponse({ res, statusCode: 404, translationKey: "user_not_found" });
+    }
+
+    const eligibility = await getUserDeletionImpact(user);
+    return sendResponse({
+      res,
+      statusCode: 200,
+      translationKey: "user_deletion_eligibility_checked",
+      data: eligibility,
+    });
+  } catch (error) {
+    return sendResponse({ res, statusCode: 500, translationKey: "user_deletion_eligibility_error", error });
+  }
+};
+
+const deleteUserAccount = async (req, res) => {
+  const { userId } = req.params;
+  if (!validateParams(req, res, { pathParams: ["userId"], objectIdFields: ["userId"] })) return;
+
+  try {
+    const user = await User.findById(userId).select("_id email accountState.status").lean();
+    if (!user) {
+      return sendResponse({ res, statusCode: 404, translationKey: "user_not_found" });
+    }
+
+    // Eligibility is recalculated here; the earlier impact-check response is never trusted.
+    const eligibility = await getUserDeletionImpact(user);
+    if (!eligibility.isDeletable) {
+      return sendResponse({
+        res,
+        statusCode: 409,
+        translationKey: "user_deletion_blocked",
+        data: eligibility,
+      });
+    }
+
+    const finalDeletionDate = new Date();
+    const randomEmail = `deleted_user_${userId}_${finalDeletionDate.getTime()}@example.com`;
+    const deletedUser = await User.findOneAndUpdate(
+      { _id: userId, "accountState.status": { $ne: "hardDeleted" } },
+      {
+        $set: {
+          email: randomEmail,
+          previousEmail: user.email,
+          "accountState.status": "hardDeleted",
+          "accountState.finalDeletionDate": finalDeletionDate,
+        },
+      },
+      { new: true },
+    );
+
+    if (!deletedUser) {
+      return sendResponse({ res, statusCode: 409, translationKey: "user_deletion_blocked" });
+    }
+
+    // Keep historical bookings, payments and reviews; the existing account-deletion
+    // flow anonymizes the account and hides its profiles rather than erasing history.
+    await Promise.all([
+      Devices.updateMany({ userId }, { $set: { devices: [] } }),
+      UserProfile.updateMany({ user: userId }, { $set: { status: "deleted" } }),
+      BusinessProfile.updateMany({ user: userId }, { $set: { status: "deleted" } }),
+      User.updateMany(
+        { _id: { $ne: userId }, $or: [{ blockedUsers: userId }, { reportedBy: userId }] },
+        { $pull: { blockedUsers: userId, reportedBy: userId } },
+      ),
+      revokeAllSessions({ userId }),
+    ]);
+
+    userCache.del(userId.toString());
+    return sendResponse({
+      res,
+      statusCode: 200,
+      translationKey: "account_deleted",
+      data: { userId, deleted: true, affectedRecords: eligibility.affectedRecords },
+    });
+  } catch (error) {
+    return sendResponse({ res, statusCode: 500, translationKey: "account_deletion_error", error });
+  }
+};
+
 module.exports = {
   blockUser,
   reportUser,
@@ -762,4 +1023,6 @@ module.exports = {
   getOtherUserProfile,
   updateProfile,
   reviewCertifications,
+  checkUserDeletionEligibility,
+  deleteUserAccount,
 };
