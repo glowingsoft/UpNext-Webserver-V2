@@ -14,6 +14,7 @@ const {
   reviewCertifications,
   checkUserDeletionEligibility,
   deleteUserAccount,
+  hardDeleteUserAccount,
 } = require("../controllers/userController");
 const roleMiddleware = require("@middlewares/roleMiddleware");
 const { allUsers } = require("../controllers/adminPanelController");
@@ -46,6 +47,7 @@ router.get(
   checkUserDeletionEligibility,
 );
 router.delete("/profile/:userId", roleMiddleware(["admin"]), deleteUserAccount);
+router.delete("/profile/:userId/hard-delete", roleMiddleware(["admin"]), hardDeleteUserAccount);
 router.post("/:userIdToBlock/block", blockUser);
 router.post("/:userIdToReport/report", reportUser);
 router.post("/add-update-subscription", addOrUpdateSubscription);

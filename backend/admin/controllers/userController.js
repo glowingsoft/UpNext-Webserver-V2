@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+const { DeleteObjectsCommand } = require("@aws-sdk/client-s3");
 const { User, SubscriptionType } = require("@models/UserModel");
 const moment = require("moment");
 const { sendResponse, validateParams, parsePaginationParams, generateMeta } = require("@utils/responseUtil");
@@ -34,6 +36,10 @@ const { escapeRegExp } = require("@utils/regexUtil");
 // longer exists (the file moved under controllers/), so it throws on require.
 const { sendUserNotifications } = require("../../commonModules/controllers/communicationController");
 const { NotificationExp, NotificationTypes } = require("@models/Notifications");
+const { s3 } = require("@config/s3Client");
+const AccountDeletionCleanup = require("@models/AccountDeletionCleanup");
+const BookingOffer = require("@models/BookingOffer");
+const Dispute = require("@models/Dispute");
 // Path to the JSON file
 // const currenciesFilePath = path.join(__dirname, "@assets/currencies/currencies.json");
 
@@ -574,7 +580,7 @@ const updateUserProfile = async (req, res, next) => {
     }
 
     if (language) {
-        user.language = language;
+      user.language = language;
     }
 
     // Save the updated user
@@ -744,9 +750,7 @@ const reviewCertifications = async (req, res) => {
           : `Your ${certificationLabel} certification was rejected: ${profile.certifications.rejectionReason}`,
       data: {
         type:
-          action === "approve"
-            ? NotificationTypes.CERTIFICATION_APPROVED
-            : NotificationTypes.CERTIFICATION_REJECTED,
+          action === "approve" ? NotificationTypes.CERTIFICATION_APPROVED : NotificationTypes.CERTIFICATION_REJECTED,
         objectType: "certification",
       },
       objectId: profile._id,
@@ -769,20 +773,86 @@ const reviewCertifications = async (req, res) => {
   }
 };
 
-const getUserDeletionImpact = async (user) => {
+const getUserDeletionImpact = async (user, { session = null, businessProfiles: suppliedBusinessProfiles = null } = {}) => {
   const userId = user._id;
-  const [userProfileCount, businessProfiles] = await Promise.all([
-    UserProfile.countDocuments({ user: userId }),
-    BusinessProfile.find({ user: userId }).select("_id").lean(),
-  ]);
+  const userProfileCountQuery = UserProfile.countDocuments({ user: userId });
+  const businessProfilesQuery = suppliedBusinessProfiles
+    ? null
+    : BusinessProfile.find({ user: userId }).select("_id");
+  if (session) {
+    userProfileCountQuery.session(session);
+    businessProfilesQuery?.session(session);
+  }
+  const userProfileCount = await userProfileCountQuery;
+  const businessProfiles = suppliedBusinessProfiles || (await businessProfilesQuery.lean());
   const businessIds = businessProfiles.map((profile) => profile._id);
   const businessOwnerClause = businessIds.length ? [{ business: { $in: businessIds } }] : [];
   const bookingOwnerFilter = { $or: [{ user: userId }, ...businessOwnerClause] };
   const paymentOwnerFilter = { $or: [{ user: userId }, ...businessOwnerClause] };
   const reviewOwnerFilter = { $or: [{ subject: userId }, ...businessOwnerClause] };
   const businessRecordsFilter = { business: { $in: businessIds } };
-  const pendingBookingPaymentStatuses = ["pending", "vaulted", "authorized", "requires_payment_fix"];
+  const pendingBookingPaymentStatuses = [
+    "pending",
+    "vaulted",
+    "authorized",
+    "requires_payment_fix",
+    "capture_retrying",
+  ];
 
+  const countQueries = [
+    () => Booking.countDocuments(bookingOwnerFilter),
+    () => Booking.countDocuments({
+      $and: [bookingOwnerFilter, { status: { $in: ["requested", "scheduled", "ongoing"] } }],
+    }),
+    () => Booking.countDocuments({ $and: [bookingOwnerFilter, { status: "ongoing" }] }),
+    () => Booking.countDocuments({
+      $and: [bookingOwnerFilter, { paymentStatus: { $in: pendingBookingPaymentStatuses } }],
+    }),
+    () => Booking.countDocuments({ $and: [bookingOwnerFilter, { paymentStatus: "failed" }] }),
+    () => Payment.countDocuments(paymentOwnerFilter),
+    () => Payment.countDocuments({ $and: [paymentOwnerFilter, { status: { $in: ["pending", "authorized"] } }] }),
+    () => BookingDraft.countDocuments(bookingOwnerFilter),
+    () => BookingOffer.countDocuments({
+      business: { $in: businessIds },
+      status: "pending",
+      expiresAt: { $gt: new Date() },
+    }),
+    () => Dispute.countDocuments({
+      $or: [{ user: userId }, ...(businessIds.length ? [{ provider: { $in: businessIds } }] : [])],
+      outcome: "open",
+    }),
+    () => Services.countDocuments(businessRecordsFilter),
+    () => Packages.countDocuments(businessRecordsFilter),
+    () => Review.countDocuments(reviewOwnerFilter),
+    () => Promotion.countDocuments(businessRecordsFilter),
+    () => PromotionUsage.countDocuments({ user: userId }),
+    () => Portfolio.countDocuments(businessRecordsFilter),
+    () => ServiceCategory.countDocuments(businessRecordsFilter),
+    () => BusinessAnalyticsEvent.countDocuments({
+      $or: [{ user: userId }, ...businessOwnerClause],
+    }),
+    () => Card.countDocuments({ user: userId }),
+    () => NotificationExp.countDocuments({ $or: [{ receiverId: userId }, { subjectId: userId }] }),
+    () => Conversation.countDocuments({ $or: [{ "participants.user": userId }, { admins: userId }] }),
+    () => Message.countDocuments({ $or: [{ senderId: userId }, { "readBy.userId": userId }] }),
+    () => Session.countDocuments({ userId }),
+    () => Devices.countDocuments({ userId }),
+    () => Traffic.countDocuments({ profileId: userId }),
+    () => SupportRequest.countDocuments({
+      $or: [user.email, user.previousEmail]
+        .filter(Boolean)
+        .map((email) => ({ email: { $regex: `^${escapeRegExp(email)}$`, $options: "i" } })),
+    }),
+    () => User.countDocuments({
+      _id: { $ne: userId },
+      $or: [{ blockedUsers: userId }, { reportedBy: userId }],
+    }),
+  ];
+  const countResults = [];
+  for (const countQuery of countQueries) {
+    const query = countQuery();
+    countResults.push(await (session ? query.session(session) : query));
+  }
   const [
     bookings,
     activeBookings,
@@ -792,6 +862,8 @@ const getUserDeletionImpact = async (user) => {
     payments,
     pendingPayments,
     bookingDrafts,
+    pendingBookingOffers,
+    openDisputes,
     services,
     packages,
     reviews,
@@ -809,44 +881,7 @@ const getUserDeletionImpact = async (user) => {
     traffic,
     supportRequests,
     accountReferences,
-  ] = await Promise.all([
-    Booking.countDocuments(bookingOwnerFilter),
-    Booking.countDocuments({
-      $and: [bookingOwnerFilter, { status: { $in: ["requested", "scheduled", "ongoing"] } }],
-    }),
-    Booking.countDocuments({ $and: [bookingOwnerFilter, { status: "ongoing" }] }),
-    Booking.countDocuments({
-      $and: [bookingOwnerFilter, { paymentStatus: { $in: pendingBookingPaymentStatuses } }],
-    }),
-    Booking.countDocuments({ $and: [bookingOwnerFilter, { paymentStatus: "failed" }] }),
-    Payment.countDocuments(paymentOwnerFilter),
-    Payment.countDocuments({ $and: [paymentOwnerFilter, { status: { $in: ["pending", "authorized"] } }] }),
-    BookingDraft.countDocuments(bookingOwnerFilter),
-    Services.countDocuments(businessRecordsFilter),
-    Packages.countDocuments(businessRecordsFilter),
-    Review.countDocuments(reviewOwnerFilter),
-    Promotion.countDocuments(businessRecordsFilter),
-    PromotionUsage.countDocuments({ user: userId }),
-    Portfolio.countDocuments(businessRecordsFilter),
-    ServiceCategory.countDocuments(businessRecordsFilter),
-    BusinessAnalyticsEvent.countDocuments({
-      $or: [{ user: userId }, ...businessOwnerClause],
-    }),
-    Card.countDocuments({ user: userId }),
-    NotificationExp.countDocuments({ $or: [{ receiverId: userId }, { subjectId: userId }] }),
-    Conversation.countDocuments({ $or: [{ "participants.user": userId }, { admins: userId }] }),
-    Message.countDocuments({ $or: [{ senderId: userId }, { "readBy.userId": userId }] }),
-    Session.countDocuments({ userId }),
-    Devices.countDocuments({ userId }),
-    Traffic.countDocuments({ profileId: userId }),
-    SupportRequest.countDocuments({
-      email: { $regex: `^${escapeRegExp(user.email || "")}$`, $options: "i" },
-    }),
-    User.countDocuments({
-      _id: { $ne: userId },
-      $or: [{ blockedUsers: userId }, { reportedBy: userId }],
-    }),
-  ]);
+  ] = countResults;
 
   const affectedRecords = {
     user: 1,
@@ -861,6 +896,8 @@ const getUserDeletionImpact = async (user) => {
     },
     payments: { total: payments, pending: pendingPayments },
     bookingDrafts,
+    pendingBookingOffers,
+    openDisputes,
     services,
     packages,
     reviews,
@@ -908,6 +945,20 @@ const getUserDeletionImpact = async (user) => {
       code: "booking_checkouts_in_progress",
       translationKey: "user_deletion_blocked_checkouts",
       count: bookingDrafts,
+    });
+  }
+  if (pendingBookingOffers) {
+    blockingReasons.push({
+      code: "active_provider_offers",
+      translationKey: "user_deletion_blocked_active_offers",
+      count: pendingBookingOffers,
+    });
+  }
+  if (openDisputes) {
+    blockingReasons.push({
+      code: "open_disputes",
+      translationKey: "user_deletion_blocked_open_disputes",
+      count: openDisputes,
     });
   }
   if (user.accountState?.status === "hardDeleted") {
@@ -968,7 +1019,7 @@ const deleteUserAccount = async (req, res) => {
     }
 
     const finalDeletionDate = new Date();
-    const randomEmail = `deleted_user_${userId}_${finalDeletionDate.getTime()}@example.com`;
+    const randomEmail = `deleted_user_${userId}_${finalDeletionDate.getTime()}@upnext.com`;
     const deletedUser = await User.findOneAndUpdate(
       { _id: userId, "accountState.status": { $ne: "hardDeleted" } },
       {
@@ -1011,6 +1062,355 @@ const deleteUserAccount = async (req, res) => {
   }
 };
 
+const s3KeyFromAsset = (asset) => {
+  if (typeof asset !== "string" || !asset.trim()) return null;
+
+  const value = asset.trim().split(/[?#]/)[0];
+  if (!value || value === "noimg.png") return null;
+  const baseUrl = (process.env.S3_BASE_URL || "").replace(/\/+$/, "");
+  if (baseUrl && value.startsWith(`${baseUrl}/`)) {
+    return decodeURIComponent(value.slice(baseUrl.length + 1));
+  }
+  if (/^https?:\/\//i.test(value)) return null;
+  return value.replace(/^\/+/, "");
+};
+
+const collectUserAssets = async ({ user, businessIds, session }) => {
+  const businessProfilesQuery = BusinessProfile.find({ _id: { $in: businessIds } }).select(
+    "image coverImage certifications.files",
+  );
+  const servicesQuery = Services.find({ business: { $in: businessIds } }).select("photos");
+  const packagesQuery = Packages.find({ business: { $in: businessIds } }).select("coverImage photos");
+  const promotionsQuery = Promotion.find({ business: { $in: businessIds } }).select("photos");
+  const portfoliosQuery = Portfolio.find({ business: { $in: businessIds } }).select("media.file media.thumbnail");
+  const bookingsQuery = Booking.find({ $or: [{ user: user._id }, { business: { $in: businessIds } }] }).select(
+    "business snapshot.photos",
+  );
+  const assetQueries = [businessProfilesQuery, servicesQuery, packagesQuery, promotionsQuery, portfoliosQuery, bookingsQuery];
+  if (session) assetQueries.forEach((query) => query.session(session));
+  const [businessProfiles, services, packages, promotions, portfolios, bookings] = session
+    ? [
+        await businessProfilesQuery.lean(),
+        await servicesQuery.lean(),
+        await packagesQuery.lean(),
+        await promotionsQuery.lean(),
+        await portfoliosQuery.lean(),
+        await bookingsQuery.lean(),
+      ]
+    : await Promise.all(assetQueries.map((query) => query.lean()));
+
+  const assets = [
+    user.profileIcon,
+    ...businessProfiles.flatMap((profile) => [
+      profile.image,
+      profile.coverImage,
+      ...(profile.certifications?.files || []),
+    ]),
+    ...services.flatMap((service) => service.photos || []),
+    ...packages.flatMap((pkg) => [pkg.coverImage, ...(pkg.photos || [])]),
+    ...promotions.flatMap((promotion) => promotion.photos || []),
+    ...portfolios.flatMap((portfolio) => (portfolio.media || []).flatMap((media) => [media.file, media.thumbnail])),
+  ];
+  const businessesWithBookings = new Set(
+    bookings
+      .filter((booking) => businessIds.some((id) => String(id) === String(booking.business)))
+      .map((booking) => String(booking.business)),
+  );
+  const businessImages = businessProfiles
+    .filter((profile) => businessesWithBookings.has(String(profile._id)))
+    .map((profile) => profile.image);
+  const preservedKeys = new Set([
+    ...bookings.flatMap((booking) => (booking.snapshot?.photos || []).map(s3KeyFromAsset).filter(Boolean)),
+    ...businessImages.map(s3KeyFromAsset).filter(Boolean),
+  ]);
+  const keys = [...new Set(assets.map(s3KeyFromAsset).filter(Boolean))].filter((key) => !preservedKeys.has(key));
+  if (!keys.length) return keys;
+
+  const baseUrl = (process.env.S3_BASE_URL || "").replace(/\/+$/, "");
+  const assetValues = [
+    ...new Set([
+      ...keys,
+      ...assets.filter((asset) => typeof asset === "string"),
+      ...(baseUrl ? keys.map((key) => `${baseUrl}/${key}`) : []),
+    ]),
+  ];
+  const sharedKeys = new Set();
+  const remember = (values) => {
+    values
+      .flat(Infinity)
+      .map(s3KeyFromAsset)
+      .filter(Boolean)
+      .forEach((key) => sharedKeys.add(key));
+  };
+  const otherUserAssets = await User.find({ _id: { $ne: user._id }, profileIcon: { $in: assetValues } })
+    .select("profileIcon")
+    .lean();
+  remember(otherUserAssets.map((otherUser) => otherUser.profileIcon));
+
+  const otherBusinessAssets = await BusinessProfile.find({
+    _id: { $nin: businessIds },
+    $or: [
+      { image: { $in: assetValues } },
+      { coverImage: { $in: assetValues } },
+      { "certifications.files": { $in: assetValues } },
+    ],
+  })
+    .select("image coverImage certifications.files")
+    .lean();
+  remember(
+    otherBusinessAssets.map((profile) => [profile.image, profile.coverImage, profile.certifications?.files || []]),
+  );
+
+  const otherServices = await Services.find({ business: { $nin: businessIds }, photos: { $in: assetValues } })
+    .select("photos")
+    .lean();
+  remember(otherServices.map((service) => service.photos || []));
+  const otherPackages = await Packages.find({
+    business: { $nin: businessIds },
+    $or: [{ coverImage: { $in: assetValues } }, { photos: { $in: assetValues } }],
+  })
+    .select("coverImage photos")
+    .lean();
+  remember(otherPackages.map((pkg) => [pkg.coverImage, pkg.photos || []]));
+  const otherPromotions = await Promotion.find({ business: { $nin: businessIds }, photos: { $in: assetValues } })
+    .select("photos")
+    .lean();
+  remember(otherPromotions.map((promotion) => promotion.photos || []));
+  const otherPortfolios = await Portfolio.find({
+    business: { $nin: businessIds },
+    $or: [{ "media.file": { $in: assetValues } }, { "media.thumbnail": { $in: assetValues } }],
+  })
+    .select("media.file media.thumbnail")
+    .lean();
+  remember(
+    otherPortfolios.map((portfolio) => (portfolio.media || []).flatMap((media) => [media.file, media.thumbnail])),
+  );
+  const otherBookingAssets = await Booking.find({
+    $or: [{ "snapshot.photos": { $in: assetValues } }, { "snapshot.businessInfo.image": { $in: assetValues } }],
+  })
+    .select("snapshot.photos snapshot.businessInfo.image")
+    .lean();
+  remember(
+    otherBookingAssets.map((booking) => [booking.snapshot?.photos || [], booking.snapshot?.businessInfo?.image]),
+  );
+
+  return keys.filter((key) => !sharedKeys.has(key));
+};
+
+const deleteS3Assets = async (keys) => {
+  for (let index = 0; index < keys.length; index += 1000) {
+    const response = await s3.send(
+      new DeleteObjectsCommand({
+        Bucket: process.env.S3_BUCKET_NAME,
+        Delete: { Objects: keys.slice(index, index + 1000).map((Key) => ({ Key })), Quiet: true },
+      }),
+    );
+    if (response.Errors?.length) {
+      throw new Error(
+        `Failed to delete ${response.Errors.length} user media file(s): ${response.Errors.map(
+          ({ Key, Message }) => `${Key}: ${Message}`,
+        ).join("; ")}`,
+      );
+    }
+  }
+};
+
+const hardDeleteUserAccount = async (req, res) => {
+  const { userId } = req.params;
+  if (!validateParams(req, res, { pathParams: ["userId"], objectIdFields: ["userId"] })) return;
+
+  try {
+    const user = await User.findById(userId)
+      .select("_id email previousEmail profileIcon accountState.userType accountState.status")
+      .lean();
+
+    if (!user) {
+      const cleanup = await AccountDeletionCleanup.findOne({ userId }).lean();
+      if (!cleanup) return sendResponse({ res, statusCode: 404, translationKey: "user_not_found" });
+
+      await deleteS3Assets(cleanup.s3Keys);
+      await AccountDeletionCleanup.deleteOne({ _id: cleanup._id });
+      return sendResponse({
+        res,
+        statusCode: 200,
+        translationKey: "account_deleted",
+        data: { userId, deleted: true, storageCleanupComplete: true },
+      });
+    }
+
+    if (user.accountState?.userType === "admin" || String(req.user?._id) === String(user._id)) {
+      return sendResponse({ res, statusCode: 403, translationKey: "hard_delete_not_allowed" });
+    }
+
+    let impact;
+    let s3Keys = [];
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        const currentUser = await User.findById(user._id).session(session).lean();
+        if (!currentUser) throw new Error("User account no longer exists");
+        if (
+          currentUser.accountState?.userType === "admin" ||
+          String(req.user?._id) === String(currentUser._id)
+        ) {
+          const error = new Error("Admin accounts cannot be permanently deleted");
+          error.statusCode = 403;
+          throw error;
+        }
+
+        const currentBusinessProfiles = await BusinessProfile.find({ user: user._id })
+          .select("_id businessName image location isAvailable")
+          .session(session)
+          .lean();
+        const currentBusinessIds = currentBusinessProfiles.map((profile) => profile._id);
+        impact = await getUserDeletionImpact(currentUser, {
+          session,
+          businessProfiles: currentBusinessProfiles,
+        });
+        const blockingReasons = impact.blockingReasons.filter((reason) => reason.code !== "account_already_deleted");
+        if (blockingReasons.length) {
+          const error = new Error("User account is not eligible for permanent deletion");
+          error.deletionImpact = { ...impact, isDeletable: false, blockingReasons };
+          throw error;
+        }
+
+        s3Keys = await collectUserAssets({
+          user: currentUser,
+          businessIds: currentBusinessIds,
+          session,
+        });
+
+        await Booking.updateMany(
+          { user: user._id },
+          {
+            $set: {
+              "snapshot.userInfo": { _id: user._id, name: "Deleted user", profileIcon: null },
+            },
+          },
+          { session },
+        );
+        for (const profile of currentBusinessProfiles) {
+          await Booking.updateMany(
+            { business: profile._id },
+            {
+              $set: {
+                "snapshot.businessInfo": {
+                  _id: profile._id,
+                  businessName: profile.businessName,
+                  image: profile.image,
+                  location: profile.location,
+                  isAvailable: profile.isAvailable,
+                },
+              },
+            },
+            { session },
+          );
+        }
+
+        await AccountDeletionCleanup.findOneAndUpdate(
+          { userId: user._id },
+          { $set: { userId: user._id, s3Keys } },
+          { upsert: true, new: true, session },
+        );
+
+        await UserProfile.deleteMany({ user: user._id }, { session });
+        await BusinessProfile.deleteMany({ _id: { $in: currentBusinessIds } }, { session });
+        await Services.deleteMany({ business: { $in: currentBusinessIds } }, { session });
+        await Packages.deleteMany({ business: { $in: currentBusinessIds } }, { session });
+        await Promotion.deleteMany({ business: { $in: currentBusinessIds } }, { session });
+        await Portfolio.deleteMany({ business: { $in: currentBusinessIds } }, { session });
+        await ServiceCategory.deleteMany({ business: { $in: currentBusinessIds } }, { session });
+        await BusinessAnalyticsEvent.deleteMany({ business: { $in: currentBusinessIds } }, { session });
+        await BusinessAnalyticsEvent.updateMany({ user: user._id }, { $set: { user: null } }, { session });
+        await Card.deleteMany({ user: user._id }, { session });
+        await Devices.deleteMany({ userId: user._id }, { session });
+        await Session.deleteMany({ userId: user._id }, { session });
+        await Traffic.deleteMany({ profileId: user._id }, { session });
+        await BookingDraft.deleteMany(
+          { $or: [{ user: user._id }, { business: { $in: currentBusinessIds } }] },
+          { session },
+        );
+        await NotificationExp.deleteMany({ receiverId: user._id }, { session });
+        await NotificationExp.updateMany({ subjectId: user._id }, { $set: { subjectId: null } }, { session });
+        await Conversation.updateMany(
+          { $or: [{ "participants.user": user._id }, { admins: user._id }] },
+          {
+            $pull: { participants: { user: user._id }, admins: user._id },
+            $unset: {
+              [`unreadCounts.${user._id}`]: "",
+              [`lastActivity.${user._id}`]: "",
+            },
+          },
+          { session },
+        );
+        await Message.updateMany({ senderId: user._id }, { $set: { senderId: null } }, { session });
+        await Message.updateMany(
+          { "readBy.userId": user._id },
+          { $pull: { readBy: { userId: user._id } } },
+          { session },
+        );
+        await Review.updateMany({ subject: user._id }, { $set: { subject: null } }, { session });
+        await User.updateMany(
+          { _id: { $ne: user._id }, $or: [{ blockedUsers: user._id }, { reportedBy: user._id }] },
+          { $pull: { blockedUsers: user._id, reportedBy: user._id } },
+          { session },
+        );
+        const supportRequestFilters = [currentUser.email, currentUser.previousEmail]
+          .filter(Boolean)
+          .map((email) => ({ email: { $regex: `^${escapeRegExp(email)}$`, $options: "i" } }));
+        await SupportRequest.deleteMany({ $or: supportRequestFilters }, { session });
+        await User.deleteOne({ _id: user._id }, { session });
+      });
+    } finally {
+      await session.endSession();
+    }
+
+    userCache.del(String(user._id));
+
+    try {
+      await deleteS3Assets(s3Keys);
+      await AccountDeletionCleanup.deleteOne({ userId: user._id });
+    } catch (error) {
+      return sendResponse({
+        res,
+        statusCode: 500,
+        translationKey: "hard_delete_storage_cleanup_pending",
+        data: { userId, deleted: true, storageCleanupPending: true },
+        error,
+      });
+    }
+
+    return sendResponse({
+      res,
+      statusCode: 200,
+      translationKey: "account_deleted",
+      data: {
+        userId,
+        deleted: true,
+        preserved: {
+          bookings: impact.affectedRecords.bookings.total,
+          payments: impact.affectedRecords.payments.total,
+          reviews: impact.affectedRecords.reviews,
+        },
+        storageCleanupComplete: true,
+      },
+    });
+  } catch (error) {
+    if (error.statusCode === 403) {
+      return sendResponse({ res, statusCode: 403, translationKey: "hard_delete_not_allowed" });
+    }
+    if (error.deletionImpact) {
+      return sendResponse({
+        res,
+        statusCode: 409,
+        translationKey: "user_deletion_blocked",
+        data: error.deletionImpact,
+      });
+    }
+    return sendResponse({ res, statusCode: 500, translationKey: "hard_delete_error", error });
+  }
+};
+
 module.exports = {
   blockUser,
   reportUser,
@@ -1025,4 +1425,5 @@ module.exports = {
   reviewCertifications,
   checkUserDeletionEligibility,
   deleteUserAccount,
+  hardDeleteUserAccount,
 };

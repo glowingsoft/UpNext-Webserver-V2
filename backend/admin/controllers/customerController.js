@@ -45,8 +45,8 @@ const countCustomerStatuses = async (matchConditions) => {
     statusList[status] = 0;
   });
   counts.forEach(({ _id, count }) => {
-    statusList.all += count;
     const bucket = DELETED_STATUSES.includes(_id) ? DELETED_LABEL : _id;
+    if (bucket !== DELETED_LABEL) statusList.all += count;
     if (bucket in statusList) statusList[bucket] += count;
   });
   return statusList;
@@ -80,9 +80,12 @@ const getCustomers = async (req, res) => {
     const { page, limit } = parsePaginationParams(req);
     const { keyword, status, sortBy } = req.query;
 
-    // No status exclusion: deleted customers stay in the admin list.
-    const matchConditions = { "accountState.userType": "user" };
-    if (status) matchConditions["accountState.status"] = statusFilterFor(status);
+    // Hide deleted customers from the default list, but keep the explicit
+    // deleted status tab available to admins.
+    const matchConditions = {
+      "accountState.userType": "user",
+      "accountState.status": status ? statusFilterFor(status) : { $nin: DELETED_STATUSES },
+    };
     if (keyword?.trim()) {
       matchConditions.$or = [
         { name: { $regex: keyword.trim(), $options: "i" } },
@@ -146,9 +149,8 @@ const getCustomer = async (req, res) => {
   if (!validateParams(req, res, validationOptions)) return;
 
   try {
-    // No status exclusion, matching getCustomers: a deleted customer still
-    // shows up in the admin list, so its row has to stay openable — filtering
-    // the deletion states out here 404'd every row the list rendered.
+    // Keep deleted customers openable when an admin reaches this profile
+    // through the explicit deleted status tab.
     const user = await User.findOne({
       _id: userId,
       "accountState.userType": "user",
