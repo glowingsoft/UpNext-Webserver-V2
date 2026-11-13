@@ -273,6 +273,12 @@ const userSchema = new mongoose.Schema(
     // The bookings themselves (paymentStatus "failed") remain the source of
     // truth — these are a mirror so the user document shows the whole picture
     // rather than a single id, and so the booking gate can skip a query.
+    // Set when an instant-booking hold is declined; cleared by the next
+    // successful hold. Blocks new instant bookings only.
+    instantBlocked: {
+      type: Boolean,
+      default: false,
+    },
     hasOutstandingDebt: {
       type: Boolean,
       default: false,

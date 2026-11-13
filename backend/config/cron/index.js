@@ -10,6 +10,10 @@ const {
   runPaymentFixGraceCron,
   runStatusTransitionCron,
 } = require("../../app/services/bookingLifecycleService");
+const { runOfferSweeper } = require("../../app/services/instantOfferService");
+// Requiring this also registers the offer-engine event listeners (hold release, conversations)
+const { runInstantPaymentsCron } = require("../../app/services/instantPaymentService");
+const { refreshPenaltyState } = require("../../app/services/penaltyService");
 
 const withLock = (lockKey, fn, ttl = 300) => async () => {
   // Best effort, same as slot locks and cache(): when Redis is down
@@ -80,6 +84,21 @@ const startCrons = () => {
         abandoned checkouts (every 5 min)
      ====================================================== */
   cron.schedule("*/5 * * * *", withLock("cron:booking-status-transition", runStatusTransitionCron, 240));
+
+  /* ======================================================
+     ⚡ CRON - Up Next offer expiry / reroute sweeper (every 5s)
+     ====================================================== */
+  cron.schedule("*/5 * * * * *", withLock("cron:instant-offer-sweeper", runOfferSweeper, 4));
+
+  /* ======================================================
+     🕛 CRON - Penalty rolling-window refresh + suspension lift (every minute)
+     ====================================================== */
+  cron.schedule("* * * * *", withLock("cron:instant-penalty-refresh", refreshPenaltyState, 55));
+
+  /* ======================================================
+     💳 CRON - Up Next capture retries + payout retries (every minute)
+     ====================================================== */
+  cron.schedule("* * * * *", withLock("cron:instant-payments", runInstantPaymentsCron, 55));
 };
 
 module.exports = { startCrons };

@@ -4,6 +4,8 @@ const { User } = require("@models/UserModel");
 const { userCache } = require("@config/nodeCache");
 const Booking = require("@models/Bookings");
 const Payment = require("@models/Payment");
+const Dispute = require("@models/Dispute");
+const ProviderPenalty = require("@models/ProviderPenalty");
 const { sendUserNotifications } = require("../commonModules/controllers/communicationController");
 const { NotificationTypes } = require("@models/Notifications");
 const { syncDebtLock } = require("../app/services/paymentService");
@@ -65,6 +67,9 @@ async function handleAccountUpdated(account) {
 
 async function handlePaymentAuthorized(paymentIntent) {
   try {
+    // Instant holds are created and tracked by the instant payment service
+    if (String(paymentIntent.metadata?.purpose || "").startsWith("instant")) return;
+
     // amount_capturable > 0 means authorized but not yet captured
     await Payment.findOneAndUpdate(
       { stripePaymentId: paymentIntent.id },
@@ -130,6 +135,9 @@ async function handleSetupSucceeded(setupIntent) {
 
 async function handlePaymentCaptured(paymentIntent) {
   try {
+    // Instant bookings record their own capture (partial amounts, fee, payout)
+    if (String(paymentIntent.metadata?.purpose || "").startsWith("instant")) return;
+
     await Payment.findOneAndUpdate(
       { stripePaymentId: paymentIntent.id },
       {
@@ -197,11 +205,71 @@ async function handlePaymentFailed(paymentIntent) {
 }
 
 /**
+ * Lost dispute with provider at fault: amount + Stripe's dispute fee come out
+ * of the provider's future payouts. Atomic on deductionRecorded so webhook
+ * retries and repeated admin calls record it once.
+ */
+async function recordDisputeDeduction(disputeId) {
+  const claimed = await Dispute.findOneAndUpdate(
+    { _id: disputeId, outcome: "lost", faultParty: "provider", deductionRecorded: false, provider: { $ne: null } },
+    { $set: { deductionRecorded: true } },
+    { new: true },
+  );
+  if (!claimed) return null;
+  try {
+    return await ProviderPenalty.create({
+      provider: claimed.provider,
+      booking: claimed.booking,
+      type: "dispute",
+      weight: 0,
+      deductionCents: claimed.amountCents + (claimed.stripeFeeCents || 0),
+      note: `Lost dispute ${claimed.stripeDisputeId}`,
+    });
+  } catch (err) {
+    await Dispute.updateOne({ _id: claimed._id }, { $set: { deductionRecorded: false } });
+    throw err;
+  }
+}
+
+async function upsertDispute(dispute) {
+  const intentId = typeof dispute.payment_intent === "string" ? dispute.payment_intent : dispute.payment_intent?.id;
+  const payment = intentId ? await Payment.findOne({ stripePaymentId: intentId }) : null;
+  const booking = payment ? await Booking.findOne({ payment: payment._id }, "user business mode").lean() : null;
+  const stripeFeeCents = (dispute.balance_transactions || []).reduce((sum, bt) => sum + (bt.fee || 0), 0);
+  const outcome = dispute.status === "lost" ? "lost" : dispute.status === "won" ? "won" : "open";
+
+  const doc = await Dispute.findOneAndUpdate(
+    { stripeDisputeId: dispute.id },
+    {
+      $set: {
+        stripePaymentIntentId: intentId,
+        amountCents: dispute.amount,
+        stripeFeeCents,
+        reason: dispute.reason,
+        status: dispute.status,
+        outcome,
+        ...(booking && { booking: booking._id, provider: booking.business, user: booking.user }),
+      },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+  // A lost dispute the platform already knows to be provider-caused (admin set fault earlier)
+  if (outcome === "lost") await recordDisputeDeduction(doc._id);
+  return doc;
+}
+
+/**
  * Main dispatcher.
  */
 async function processWebhookEvent(event) {
   try {
     switch (event.type) {
+      case "charge.dispute.created":
+      case "charge.dispute.closed":
+      case "charge.dispute.updated":
+        await upsertDispute(event.data.object);
+        break;
+
       case "account.updated":
         await handleAccountUpdated(event.data.object);
         break;
@@ -239,4 +307,5 @@ module.exports = {
   handleSetupSucceeded,
   handlePaymentCaptured,
   handlePaymentFailed,
+  recordDisputeDeduction,
 };

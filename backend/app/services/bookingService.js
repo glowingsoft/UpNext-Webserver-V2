@@ -1368,6 +1368,7 @@ const acceptBooking = async ({ id, businessId }) => {
     return { error: "booking_not_yours", status: 403 };
   }
   if (booking.status !== "requested") return { error: "booking_cannot_accept", status: 400 };
+  if (booking.mode === "instant") return { error: "booking_use_instant_flow", status: 400 };
 
   const { entity } = await resolveEntity(booking.scope, booking.target[0]._id);
   if (!entity) return { error: "booking_entity_not_found", status: 404 };
@@ -1404,6 +1405,7 @@ const startBooking = async ({ id, businessId, timezone = "UTC" }) => {
     return { error: "booking_not_yours", status: 403 };
   }
   if (booking.status !== "scheduled") return { error: "booking_cannot_start", status: 400 };
+  if (booking.mode === "instant") return { error: "booking_use_instant_flow", status: 400 };
 
   // Same timezone reference as the detail page's canStart/timer, so the
   // window the provider sees matches what the mutation actually enforces.
@@ -1436,6 +1438,7 @@ const rejectBooking = async ({ id, businessId, reason }) => {
     return { error: "booking_not_yours", status: 403 };
   }
   if (booking.status !== "requested") return { error: "booking_cannot_reject", status: 400 };
+  if (booking.mode === "instant") return { error: "booking_use_instant_flow", status: 400 };
 
   const rejectReason = reason || "Stylist rejected your Booking Request";
   booking.status = "canceled";
@@ -1469,6 +1472,7 @@ const cancelBooking = async ({ id, requesterId, businessId, reason }) => {
   const isUser = booking.user.toString() === requesterId.toString();
   const isBusiness = businessId && booking.business.toString() === businessId.toString();
   if (!isUser && !isBusiness) return { error: "booking_not_yours", status: 403 };
+  if (booking.mode === "instant") return { error: "booking_use_instant_flow", status: 400 };
 
   if (!["requested", "scheduled"].includes(booking.status)) {
     return { error: "booking_cannot_cancel", status: 400 };
@@ -1791,6 +1795,7 @@ const completeBooking = async ({ id, businessId }) => {
   }
 
   const now = new Date();
+  if (booking.mode === "instant") return { error: "booking_use_instant_flow", status: 400 };
   const sessionEnded = slotEndDate(booking.date, booking.slot) <= now;
   const canComplete = booking.status === "ongoing" || (booking.status === "scheduled" && sessionEnded);
   if (!canComplete) return { error: "booking_cannot_complete", status: 400 };
