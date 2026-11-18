@@ -9,6 +9,14 @@ const DEFAULTS = {
   feeCapCents: 2000,
   minInstantPriceCents: 2500,
   depositPercent: 15,
+  providerAcceptSec: 120,
+  providerAcceptSecAdvance: 1800,
+  paymentSec: 300,
+  customerDecisionSec: 180,
+  maxAttemptMinutes: 15,
+  maxAdvanceDays: 7,
+  scoringWeights: { travelTime: 100, rating: 50, acceptanceRate: 30, similarity: 20 },
+  timeoutStreakLimit: 3,
   instantPayoutFeePercent: 1.5,
   offerWindowSec: 90,
   maxProviders: 3,
@@ -21,9 +29,17 @@ const DEFAULTS = {
   noShowContestWindowHours: 24,
 };
 
+const mergeInstantSettings = (saved = {}) => {
+  return {
+    ...DEFAULTS,
+    ...saved,
+    scoringWeights: { ...DEFAULTS.scoringWeights, ...(saved.scoringWeights || {}) },
+  };
+};
+
 const getInstantSettings = async () => {
   const doc = await AdminSettings.findOne({}, "instant").lean();
-  return { ...DEFAULTS, ...(doc?.instant || {}) };
+  return mergeInstantSettings(doc?.instant);
 };
 
 // min(cap, max(floor, rate x price)), rounded to a whole cent.
@@ -67,6 +83,7 @@ const cancellationCaptureCents = (pricing) => Math.min(pricing.heldCents, pricin
 module.exports = {
   toCents,
   getInstantSettings,
+  mergeInstantSettings,
   bookingFeeCents,
   computeInstantPricing,
   cancellationCaptureCents,

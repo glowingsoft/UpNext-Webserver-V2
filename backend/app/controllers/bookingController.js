@@ -1,6 +1,7 @@
 const { sendResponse, validateParams } = require("@utils/responseUtil");
 const bookingService = require("../services/bookingService");
 const { getViewerBusinessId } = require("@utils/viewerUtil");
+const Booking = require("@models/Bookings");
 
 const getSlots = async (req, res) => {
   const { scope, targetId, date } = req.query;
@@ -73,12 +74,12 @@ const createBooking = async (req, res) => {
 const BOOKING_STATUSES = ["requested", "scheduled", "ongoing", "completed", "canceled", "expired"];
 const BOOKING_SCOPES = ["service", "package"];
 
-const getUserBookings = async (req, res) => {
+const listUserBookings = (statuses, mode) => async (req, res) => {
   const { page, limit, status, scope, date, keyword } = req.query;
 
   if (
     !validateParams(req, res, {
-      enumFields: { status: BOOKING_STATUSES, scope: BOOKING_SCOPES },
+      enumFields: { status: statuses, scope: BOOKING_SCOPES },
     })
   )
     return;
@@ -86,6 +87,7 @@ const getUserBookings = async (req, res) => {
   try {
     const result = await bookingService.getUserBookings({
       userId: req.user._id,
+      ...(mode && { mode }),
       page,
       limit,
       status,
@@ -110,6 +112,9 @@ const getUserBookings = async (req, res) => {
     });
   }
 };
+
+const getUserBookings = listUserBookings(BOOKING_STATUSES);
+const getInstantUserBookings = listUserBookings(Booking.schema.path("status").enumValues, "instant");
 
 const getBusinessBookings = async (req, res) => {
   const { page, limit, status, scope, date, userId, keyword } = req.query;
@@ -538,6 +543,7 @@ module.exports = {
   getSlots,
   createBooking,
   getUserBookings,
+  getInstantUserBookings,
   getBusinessBookings,
   getBillingHistory,
   getBillingHistoryDetail,

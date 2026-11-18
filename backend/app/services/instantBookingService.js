@@ -10,13 +10,20 @@ const { User } = require("@models/UserModel");
 const { NotificationTypes } = require("@models/Notifications");
 const { userCache } = require("@config/nodeCache");
 const { sendUserNotifications } = require("../../commonModules/controllers/communicationController");
-const { getInstantSettings, computeInstantPricing, cancellationCaptureCents, toCents } = require("@utils/instantPricing");
+const {
+  getInstantSettings,
+  computeInstantPricing,
+  cancellationCaptureCents,
+  toCents,
+} = require("@utils/instantPricing");
+const { Packages } = require("@models/Packages");
 const { recordPenalty } = require("./penaltyService");
 const { startSearch, cancelSearch } = require("./instantOfferService");
 const { holdInstantPayment, releaseHold, beginCapture } = require("./instantPaymentService");
+const { transitionBooking } = require("./bookingStateMachine");
+const { runCompletionCapture } = require("./bookingCompletionCapture");
+const { AGREEMENT_TEXT, AGREEMENT_VERSION, cancellationPolicyText } = require("@utils/bookingPolicy");
 
-const AGREEMENT_TEXT = "Once a provider accepts, your deposit and booking fee are non-refundable.";
-const AGREEMENT_VERSION = "instant-v1";
 const ACTIVE_STATUSES = ["searching", "scheduled"];
 
 const history = (status, by, note) => ({ status, at: new Date(), by, ...(note && { note }) });
@@ -60,21 +67,35 @@ const businessUnavailable = (profile) =>
 
 // ─── Quote ─────────────────────────────────────────────────────────────────
 
-const quote = async ({ targetId, promotionId }) => {
-  const service = await loadService(targetId);
-  if (!service) return { error: "booking_entity_not_found", status: 404 };
+const quote = async ({ scope = "service", targetId, promotionId, userId }) => {
+  const Model = scope === "package" ? Packages : scope === "service" ? Services : null;
+  if (!Model) return { error: "booking_entity_not_found", status: 404 };
+  const entity = await Model.findById(targetId).lean();
+  if (!entity || ["deleted", "inactive"].includes(entity.status)) {
+    return { error: "booking_entity_not_found", status: 404 };
+  }
   const settings = await getInstantSettings();
-  const servicePriceCents = toCents(service.price);
+  const servicePriceCents = toCents(entity.price);
   const fee = computeInstantPricing({ servicePriceCents, settings }).feeCents;
 
   let promotion = null;
   if (promotionId) {
     promotion = await Promotion.findOne({
       _id: promotionId,
-      targetId: service._id,
+      targetId: entity._id,
+      business: entity.business,
+      scope: { $in: [scope === "service" ? "services" : "packages", "both"] },
       status: "active",
       expiresAt: { $gt: new Date() },
     }).lean();
+    if (!promotion) return { error: "promo_code_invalid", status: 400 };
+    if (!userId) throw new Error("A user is required to validate a promotion");
+    const [totalUsed, userUsed] = await Promise.all([
+      PromotionUsage.countDocuments({ promotion: promotion._id }),
+      PromotionUsage.countDocuments({ promotion: promotion._id, user: userId }),
+    ]);
+    if (totalUsed >= promotion.totalUsageLimit) return { error: "promotion_usage_limit_reached", status: 400 };
+    if (userUsed >= promotion.perUserLimit) return { error: "promotion_user_limit_reached", status: 400 };
   }
   const pricing = computeInstantPricing({
     servicePriceCents,
@@ -82,12 +103,21 @@ const quote = async ({ targetId, promotionId }) => {
     settings,
   });
   delete pricing.settings;
+  delete pricing.heldCents;
   return {
     data: {
       eligible: servicePriceCents >= settings.minInstantPriceCents,
       minInstantPriceCents: settings.minInstantPriceCents,
+      currency: "USD",
+      taxIncluded: false,
+      amountDueCents: pricing.totalCents,
+      entity: { id: entity._id, name: entity.name, scope },
       pricing,
       agreement: { text: AGREEMENT_TEXT, version: AGREEMENT_VERSION },
+      cancellationPolicy: {
+        type: entity.cancellationPolicy || "non_refundable",
+        text: cancellationPolicyText(entity.cancellationPolicy || "non_refundable"),
+      },
     },
   };
 };
@@ -116,7 +146,11 @@ const createInstantBooking = async ({ userId, body }) => {
   const settings = await getInstantSettings();
   const servicePriceCents = toCents(service.price);
   if (servicePriceCents < settings.minInstantPriceCents) {
-    return { error: "instant_price_too_low", status: 400, data: { minInstantPriceCents: settings.minInstantPriceCents } };
+    return {
+      error: "instant_price_too_low",
+      status: 400,
+      data: { minInstantPriceCents: settings.minInstantPriceCents },
+    };
   }
 
   const active = await Booking.exists({ user: userId, mode: "instant", status: { $in: ACTIVE_STATUSES } });
@@ -222,8 +256,11 @@ const createInstantBooking = async ({ userId, body }) => {
 
 const getInstantBooking = async ({ id, userId, businessId }) => {
   const filter = { _id: id, mode: "instant", ...(businessId ? { business: businessId } : { user: userId }) };
-  const booking = await Booking.findOne(filter).lean();
+  const booking = await Booking.findOne(filter, "-authorization -stripePaymentMethodId").lean();
   if (!booking) return { error: "booking_not_found", status: 404 };
+  if (booking.status === "awaiting_customer_decision" && booking.flow?.attemptExpiresAt) {
+    booking.awaitingDecisionDeadline = booking.flow.attemptExpiresAt;
+  }
   return { data: booking };
 };
 
@@ -234,7 +271,10 @@ const getCurrentOffer = async ({ businessId }) => {
     expiresAt: { $gt: new Date() },
   }).lean();
   if (!offer) return { data: null };
-  const booking = await Booking.findById(offer.booking, "bookingId target instant.location pricing.servicePriceCents").lean();
+  const booking = await Booking.findById(
+    offer.booking,
+    "bookingId target instant.location pricing.servicePriceCents",
+  ).lean();
   return {
     data: {
       offerId: offer._id,
@@ -369,7 +409,13 @@ const providerCancel = async ({ id, businessId, reason }) => {
 const arrived = async ({ id, businessId, lat, lng }) => {
   if (!validCoord(Number(lat), Number(lng))) return { error: "location_required", status: 400 };
   const booking = await Booking.findOneAndUpdate(
-    { _id: id, business: businessId, mode: "instant", status: "scheduled", "instant.checkIns.arrived.at": { $exists: false } },
+    {
+      _id: id,
+      business: businessId,
+      mode: "instant",
+      status: "ongoing",
+      "instant.checkIns.arrived.at": { $exists: false },
+    },
     { $set: { "instant.checkIns.arrived": { at: new Date(), lat: Number(lat), lng: Number(lng) } } },
     { new: true },
   );
@@ -386,28 +432,43 @@ const arrived = async ({ id, businessId, lat, lng }) => {
 };
 
 const complete = async ({ id, businessId, lat, lng }) => {
-  if (!validCoord(Number(lat), Number(lng))) return { error: "location_required", status: 400 };
-  const booking = await Booking.findOneAndUpdate(
-    {
-      _id: id,
-      business: businessId,
-      mode: "instant",
-      status: "scheduled",
-      "instant.checkIns.arrived.at": { $exists: true },
-      "instant.noShow.status": "none",
+  const hasLat = lat !== undefined && lat !== null;
+  const hasLng = lng !== undefined && lng !== null;
+  if (hasLat !== hasLng || (hasLat && !validCoord(Number(lat), Number(lng)))) {
+    return { error: "location_required", status: 400 };
+  }
+  if (!businessId) return { error: "booking_cannot_complete", status: 409 };
+  const current = await Booking.findOne({
+    _id: id, business: businessId, mode: "instant", status: "ongoing",
+    "checkIns.customerArrived.at": { $type: "date" },
+    "noShow.status": { $in: ["none", null] },
+    paymentStatus: "authorized", "capture.status": { $in: ["none", null] },
+  }).lean();
+  if (!current || !current.payment || !current.authorization?.intentId ||
+      !Number.isSafeInteger(current.pricing?.totalCents) || current.pricing.totalCents <= 0 ||
+      current.pricing.heldCents !== current.pricing.totalCents) {
+    return { error: "booking_cannot_complete", status: 409 };
+  }
+  const now = new Date();
+  const booking = await transitionBooking({
+    bookingId: id, from: "ongoing", to: "completed", actor: "business", now,
+    guard: {
+      business: businessId, mode: "instant", "checkIns.customerArrived.at": { $type: "date" },
+      "noShow.status": { $in: ["none", null] }, paymentStatus: "authorized",
+      "capture.status": { $in: ["none", null] }, payment: current.payment,
+      "authorization.intentId": current.authorization.intentId,
+      "pricing.totalCents": current.pricing.totalCents, "pricing.heldCents": current.pricing.totalCents,
     },
-    {
-      $set: {
-        status: "completed",
-        "instant.checkIns.completed": { at: new Date(), lat: Number(lat), lng: Number(lng) },
-      },
-      $push: { statusHistory: history("completed", "business") },
+    set: {
+      "checkIns.completed": { at: now, ...(hasLat && { lat: Number(lat), lng: Number(lng) }) },
+      paymentStatus: "capture_retrying",
+      capture: { kind: "completion", amountCents: current.pricing.totalCents, status: "retrying",
+        attempts: 0, nextAttemptAt: now, safeguarded: true },
     },
-    { new: true },
-  );
+  });
   if (!booking) return { error: "booking_cannot_complete", status: 400 };
 
-  await beginCapture(booking._id, { kind: "completion", amountCents: booking.pricing.totalCents });
+  await runCompletionCapture(booking._id);
   notify({
     recipientIds: [booking.user],
     title: "Service completed",
@@ -416,7 +477,7 @@ const complete = async ({ id, businessId, lat, lng }) => {
     notificationType: NotificationTypes.BOOKING_COMPLETED,
     objectId: booking._id,
   });
-  return { data: await Booking.findById(id).lean() };
+  return { data: await Booking.findById(id, "-authorization -stripePaymentMethodId").lean() };
 };
 
 // ─── No-show ───────────────────────────────────────────────────────────────
@@ -469,7 +530,13 @@ const contestNoShow = async ({ id, businessId, note }) => {
       "instant.noShow.status": "reported",
       "instant.noShow.reportedAt": { $gte: cutoff },
     },
-    { $set: { "instant.noShow.status": "contested", "instant.noShow.contestedAt": new Date(), "instant.noShow.contestNote": note || "" } },
+    {
+      $set: {
+        "instant.noShow.status": "contested",
+        "instant.noShow.contestedAt": new Date(),
+        "instant.noShow.contestNote": note || "",
+      },
+    },
     { new: true },
   );
   if (!booking) return { error: "no_show_cannot_contest", status: 400 };

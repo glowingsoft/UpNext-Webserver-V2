@@ -12,6 +12,9 @@ const addCard = async (req, res) => {
     if (error.code === "payment_method_reused") {
       return sendResponse({ res, statusCode: 400, translationKey: "payment_method_reused", error });
     }
+    if (error.code === "payment_method_invalid") {
+      return sendResponse({ res, statusCode: 400, translationKey: "payment_method_invalid", error });
+    }
     return sendResponse({ res, statusCode: 500, translationKey: "card_add_error", error });
   }
 };

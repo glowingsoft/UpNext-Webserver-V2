@@ -4,10 +4,14 @@
  * is for environments where autoIndex is off or an index build must be run on
  * demand. Idempotent.
  *
- *   BusinessProfile  2dsphere on location
- *   BookingOffer     unique { booking, business }
- *   Booking          { mode, status, instant.offer.expiresAt }
- *   ProviderPenalty  { provider, createdAt }, unique { booking, type }
+ *   BusinessProfile    2dsphere on location
+ *   BookingOffer       sweeper indexes and one pending offer per booking
+ *   Booking            sweeper indexes and one active attempt per customer
+ *   ProviderPenalty    { provider, createdAt }, unique { booking, type }
+ *
+ * The active-attempt partial index uses $in, requiring MongoDB 6.0 or later.
+ * Existing duplicate active attempts or pending offers make index creation fail;
+ * this script does not modify or remove booking data.
  *
  * Usage: npm run db:indexes
  */
@@ -33,6 +37,7 @@ const MODELS = ["@models/BusinessProfile", "@models/BookingOffer", "@models/Book
       const indexes = await Model.collection.indexes();
       console.log(`${Model.modelName}: ${indexes.map((i) => i.name).join(", ")}`);
     }
+    console.log("\n✅ All indexes created successfully");
   } finally {
     await mongoose.disconnect();
   }

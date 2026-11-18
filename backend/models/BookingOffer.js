@@ -6,7 +6,7 @@ const bookingOfferSchema = new Schema(
   {
     booking: { type: Schema.Types.ObjectId, ref: "Booking", required: true },
     business: { type: Schema.Types.ObjectId, ref: "BusinessProfile", required: true },
-    // The provider's own service that would fulfil the booking.
+    // The provider's own service/package that would fulfil the booking.
     serviceId: { type: Schema.Types.ObjectId, required: true },
     servicePriceCents: { type: Number, required: true },
     status: {
@@ -15,8 +15,9 @@ const bookingOfferSchema = new Schema(
       default: "pending",
       required: true,
     },
-    attempt: { type: Number, required: true }, // 1-based position in the booking's search
-    score: { type: Number, default: null }, // ranking score; null for the chosen provider's first offer
+    score: { type: Number, default: null }, // ranking score for this provider
+    // Track resends for send-again-once: max 2 sends per provider per attempt
+    sendCount: { type: Number, default: 1 },
     sentAt: { type: Date, required: true },
     expiresAt: { type: Date, required: true },
     respondedAt: { type: Date },
@@ -24,7 +25,16 @@ const bookingOfferSchema = new Schema(
   { timestamps: true },
 );
 
-bookingOfferSchema.index({ booking: 1, business: 1 }, { unique: true });
-bookingOfferSchema.index({ status: 1, expiresAt: 1 });
+// Indexes for sweepers and queries
+bookingOfferSchema.index({ booking: 1, status: 1, expiresAt: 1 });
+bookingOfferSchema.index({ business: 1, status: 1, sendCount: 1 });
+bookingOfferSchema.index(
+  { booking: 1 },
+  {
+    name: "one_pending_offer_per_booking",
+    unique: true,
+    partialFilterExpression: { status: "pending" },
+  },
+);
 
 module.exports = mongoose.model("BookingOffer", bookingOfferSchema);

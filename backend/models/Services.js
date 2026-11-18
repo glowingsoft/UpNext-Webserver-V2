@@ -40,10 +40,11 @@ const baseServiceFields = {
   gapBetweenSlotMins: { type: Number },
 
   // ── Booking / cancellation policy
-  howLateCanBook: timeSchema,
-  howLateCanCancel: timeSchema,
-  refundPercentage: { type: Number, min: 0, max: 100, default: 0 },
-  refundRules: { type: String },
+  cancellationPolicy: {
+    type: String,
+    enum: ["non_refundable", "refundable_24h"],
+    default: "non_refundable",
+  },
 
   // ── Photos
   photos: [{ type: String }], // array of URLs / S3 keys
@@ -66,6 +67,7 @@ const baseServiceFields = {
     min: 1,
     default: 1,
   },
+  bookingCapacityVersion: { type: Number, default: 0, select: false },
   autoSelect: {
     type: Boolean,
     default: true,

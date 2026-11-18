@@ -169,7 +169,16 @@ const transitionOffer = async (offerId, status, { extraFilter = {} } = {}) => {
   await BusinessProfile.updateOne({ _id: offer.business, "liveOffer.offer": offer._id }, { $set: { liveOffer: { offer: null, booking: null, expiresAt: null } } });
 
   if (profile) {
-    emitOfferClosed({ userId: profile.user, bookingId: offer.booking, offerId: offer._id, expiresAt: offer.expiresAt });
+    let paymentStatus = null;
+    try {
+      const booking = await Booking.findById(offer.booking, "paymentStatus").lean();
+      if (!booking) throw new Error("Offer booking not found");
+      paymentStatus = booking.paymentStatus;
+    } catch (error) {
+      console.error(`Offer payment status lookup failed for booking ${offer.booking}:`, error);
+    }
+    emitOfferClosed({ userId: profile.user, bookingId: offer.booking, offerId: offer._id,
+      expiresAt: offer.expiresAt, status: offer.status, paymentStatus });
   }
   return offer;
 };
@@ -227,7 +236,7 @@ const sendOffer = async (booking, { businessId, user, serviceId, priceCents, sco
     return null;
   }
 
-  emitOfferReceived({ userId: user, bookingId: booking._id, offerId, expiresAt });
+  emitOfferReceived({ userId: user, bookingId: booking._id, offerId, expiresAt, paymentStatus: booking.paymentStatus });
   sendUserNotifications({
     recipientIds: [user],
     title: "New Up Next request",
