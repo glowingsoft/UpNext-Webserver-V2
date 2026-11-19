@@ -60,6 +60,7 @@ const prepare = (capture) => {
   calls.debtSyncs = 0;
   Booking.findOneAndUpdate = async (filter) => {
     calls.filter = filter;
+    if (capture.kind === "cancellation") return null;
     return {
       _id: "booking", bookingId: "B1", business: "business",
       capture, pricing: { servicePriceCents: 10000, depositCents: 1500, chargeFeeCents: 700 },
@@ -96,18 +97,21 @@ test("payout uses the actual fee and a booking-level idempotency key", async () 
   assert.equal(calls.updates[0].update.$set.payoutStatus, "paid");
 });
 
-test("deposit capture uses deposit as provider gross", async () => {
-  prepare({ kind: "cancellation", amountCents: 2200, status: "captured", chargeId: "ch_test", stripeFeeCents: 94 });
-  const result = await payProvider("booking");
-  assert.equal(result.net, 1436);
-  assert.equal(calls.transfers[0].params.amount, 1436);
+test("customer cancellation deposit is retained by the platform and not transferred", async () => {
+  prepare({ kind: "cancellation", amountCents: 1500, status: "captured", chargeId: "ch_test", stripeFeeCents: 65 });
+  assert.equal(await payProvider("booking"), null);
+  assert.equal(calls.filter["capture.kind"].$ne, "cancellation");
+  assert.equal(calls.transfers.length, 0);
+  assert.equal(calls.deductions, 0);
+  assert.equal(calls.updates[0].update.$set.payoutStatus, "skipped");
+  assert.equal(calls.updates[0].update.$set["payout.netCents"], 0);
 });
 
-test("fee-only cancellation never transfers the deposit to the provider", async () => {
-  prepare({ kind: "cancellation", amountCents: 700, status: "captured", chargeId: "ch_test", stripeFeeCents: 50 });
-  const result = await payProvider("booking");
-  assert.equal(result.net, 0);
+test("legacy cancellation captures also skip provider payout", async () => {
+  prepare({ kind: "cancellation", amountCents: 2200, status: "captured", chargeId: "ch_test", stripeFeeCents: 94 });
+  assert.equal(await payProvider("booking"), null);
   assert.equal(calls.transfers.length, 0);
+  assert.equal(calls.deductions, 0);
   assert.equal(calls.updates[0].update.$set.payoutStatus, "skipped");
 });
 
@@ -119,6 +123,7 @@ test("inconsistent cancellation capture cannot overpay the provider", async () =
     assert.equal(await payProvider("booking"), null);
     assert.equal(calls.transfers.length, 0);
     assert.equal(calls.deductions, 0);
+    assert.equal(calls.updates[0].update.$set.payoutStatus, "skipped");
   } finally { console.error = originalError; }
 });
 

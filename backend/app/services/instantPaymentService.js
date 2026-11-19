@@ -175,6 +175,7 @@ const runCapture = async (bookingId) => {
         "capture.nextAttemptAt": null,
         "capture.stripeFeeCents": stripeFeeCents,
         "capture.chargeId": charge?.id,
+        ...(kind === "cancellation" && { "pricing.heldCents": 0 }),
       },
       $unset: { stripePaymentMethodId: "" },
     },
@@ -279,6 +280,7 @@ const chargeFallback = async (bookingId, reason) => {
           "capture.lastError": reason,
           "capture.stripeFeeCents": charge?.balance_transaction?.fee ?? null,
           "capture.chargeId": charge?.id,
+          ...(kind === "cancellation" && { "pricing.heldCents": 0 }),
         },
       },
     );
@@ -303,11 +305,8 @@ const chargeFallback = async (bookingId, reason) => {
 // ─── Provider payout (separate charges and transfers) ──────────────────────
 
 /**
- * Pays the provider once. Provider share is the service price (completion) or
- * the deposit (client cancel); the actual Stripe fee on the charge is split
- * pro rata by captured amount, so the provider bears fee x share/captured and
- * the booking-fee share is the platform's cost. Outstanding penalty/dispute
- * deductions come off the transfer and carry forward when it is too small.
+ * Pays the provider once after completion. Customer cancellation deposits are
+ * retained by the platform and never create a provider payout.
  * A captured charge and its actual balance-transaction fee are required.
  */
 const payProvider = async (bookingId) => {
@@ -317,17 +316,38 @@ const payProvider = async (bookingId) => {
       "payout.status": { $in: ["none", "failed"] },
       "payout.attempts": { $lt: MAX_PAYOUT_ATTEMPTS },
       "capture.status": { $in: ["captured", "fallback_charged"] },
+      "capture.kind": { $ne: "cancellation" },
       ...(!instantTestFlowEnabled() && { "capture.safeguarded": { $ne: true } }),
     },
     { $set: { payoutStatus: "pending", "payout.status": "processing" }, $inc: { "payout.attempts": 1 } },
     { new: true },
   );
-  if (!claimed) return null;
+  if (!claimed) {
+    await Booking.updateOne(
+      {
+        _id: bookingId,
+        "capture.kind": "cancellation",
+        "payout.status": { $in: ["none", "failed"] },
+      },
+      {
+        $set: {
+          payoutStatus: "skipped",
+          "payout.status": "skipped",
+          "payout.grossCents": 0,
+          "payout.stripeFeeShareCents": 0,
+          "payout.deductionCents": 0,
+          "payout.deductions": [],
+          "payout.netCents": 0,
+          "payout.transferId": null,
+          "payout.paidAt": null,
+        },
+      },
+    );
+    return null;
+  }
 
   const { capture, pricing } = claimed;
-  const providerShare = capture.kind === "cancellation"
-    ? Math.max(0, capture.amountCents - pricing.chargeFeeCents)
-    : pricing.servicePriceCents;
+  const providerShare = pricing.servicePriceCents;
   const capturedCents = capture.amountCents;
 
   let applied = [];
@@ -353,11 +373,7 @@ const payProvider = async (bookingId) => {
     }
     if (!capture.chargeId || !Number.isSafeInteger(capture.stripeFeeCents) || capture.stripeFeeCents < 0 ||
         !Number.isSafeInteger(capturedCents) || capturedCents <= 0 ||
-        !Number.isSafeInteger(providerShare) || providerShare < 0 || providerShare > capturedCents ||
-        (capture.kind === "cancellation" &&
-          (!Number.isSafeInteger(pricing.chargeFeeCents) || pricing.chargeFeeCents < 0 ||
-           !Number.isSafeInteger(pricing.depositCents) || pricing.depositCents < 0 ||
-           providerShare > pricing.depositCents || capturedCents < pricing.chargeFeeCents))) {
+        !Number.isSafeInteger(providerShare) || providerShare < 0 || providerShare > capturedCents) {
       throw new Error("Captured charge, actual Stripe fee, and valid captured amount are required for payout");
     }
     const profile = await BusinessProfile.findById(claimed.business, "user").lean();
@@ -443,7 +459,7 @@ const runInstantPaymentsCron = async () => {
   const now = new Date();
 
   const due = await Booking.find(
-    { mode: "instant", "capture.safeguarded": { $ne: true }, paymentStatus: "payment_due",
+    { mode: "instant", "capture.safeguarded": { $ne: true }, paymentStatus: { $in: ["payment_due", "capture_retrying"] },
       "capture.status": "retrying", "capture.nextAttemptAt": { $lte: now } },
     "_id",
   )

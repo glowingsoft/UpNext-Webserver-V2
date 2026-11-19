@@ -42,6 +42,16 @@ Customers can list their instant bookings with `GET /api/v1/app/instant/bookings
 using optional `page`, `limit`, `status`, `scope`, `date`, and `keyword` filters.
 Customers and assigned providers can read one booking with
 `GET /api/v1/app/instant/bookings/{{bookingId}}`.
+The single-booking response includes `userInfo` (`_id`, `name`, `email`,
+`profileIcon`) and `businessInfo` (`_id`, `user`, `businessName`, `image`,
+`email`, and `location`), plus enriched target details, `canMessage`, and
+`conversationId`. It includes the booking's review for the customer, and for
+the provider only after admin approval. The legacy `customer` and `provider`
+identity objects remain available for existing clients.
+Customer responses omit payout data and
+provider cancellation penalties, and hide `capture.stripeFeeCents` and
+`capture.chargeId`; providers retain those fields. Customer phone numbers are
+not included.
 
 ### Quote Booking
 **Endpoint:** `GET /api/v1/app/instant/quote?scope=service&targetId={{instantServiceId}}`
@@ -357,11 +367,15 @@ Completion schedules capture atomically with the status change. The response inc
 ### Phase 10: Cancel Booking
 **Quote:** `GET /api/v1/app/instant/bookings/{{bookingId}}/quote/cancel`
 
-An authenticated booking customer can preview a currently supported cancellation. The response includes `bookingId`, `bookingStatus`, `canceledBy`, `currency`, `penaltyCents`, `chargeCents`, and `authorizationRelease` (`if_present` or `not_applicable`). The quote is read-only and reflects the current booking state; cancellation rechecks it, and releasing an authorization may be retried. Provider cancellations and cancellation after confirmation are not supported by the current flow and return 409 instead of a penalty estimate. A booking belonging to another account returns 404.
+Either booking party can preview cancellation. Before acceptance, the customer quote is zero and a provider can decline the pending offer without a fee. After acceptance, customer quotes capture only the 15% deposit when it is non-refundable; with the `refundable_24h` policy, the deposit is refundable when canceled at least 24 hours before the appointment. Otherwise the deposit is captured and the rest of the authorization is released. The booking fee is never included in a cancellation charge. Provider quotes include the next cancellation number, any $7 next-payout deduction, the ranking reduction, and whether a temporary suspension applies. Quotes are read-only and cancellation rechecks the booking state. A booking belonging to another account returns 404.
 
 **Endpoint:** `POST /api/v1/app/instant/bookings/{{bookingId}}/cancel`
 
-**Current scope:** Both `POST` and `PATCH` cancel a `requested`, `awaiting_customer_decision`, or `accepted_awaiting_payment` booking as `client`. A payment-window authorization is released and failed releases are retried. Cancellation after confirmation is not yet implemented.
+**Customer endpoint:** Both `POST` and `PATCH` cancel a `requested`, `awaiting_customer_decision`, `accepted_awaiting_payment`, `confirmed`, or `ongoing` booking.
+
+**Provider endpoint:** `PATCH /api/v1/app/instant/bookings/{{bookingId}}/provider-cancel` cancels an accepted, confirmed, or ongoing booking. Before acceptance, providers decline using `POST /api/v1/app/instant/bookings/{{bookingId}}/decline`.
+
+Provider cancellation #1 records and sends a warning. Cancellation #2 and each subsequent cancellation record a $7 deduction against a future payout and apply the ranking reduction; cancellation #3 and later also temporarily suspend provider availability. Customer cancellations retain only the deposit outside the refundable window for the platform; it is not paid to the provider. Capture retries plus authorization-release retries are persisted for recovery. No booking fee or Stripe fee is added to the customer's cancellation charge.
 
 **Request Body:** Empty.
 ```json
@@ -375,7 +389,9 @@ An authenticated booking customer can preview a currently supported cancellation
   "data": {
     "bookingId": "507f1f77bcf86cd799439013",
     "status": "canceled",
-    "cancelReason": "client"
+    "cancelReason": "client",
+    "chargeCents": 1500,
+    "refundableDepositCents": 0
   }
 }
 ```

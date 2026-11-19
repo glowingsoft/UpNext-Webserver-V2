@@ -4,7 +4,7 @@ const instantBooking = require("../services/instantBookingService");
 const { runOfferSweeper } = require("../services/instantOfferService");
 const { recordCustomerArrival, startInstantBooking } = require("../services/bookingCheckIn");
 const { closeOffer } = require("../services/bookingOfferResponse");
-const { cancelBeforeAcceptance } = require("../services/bookingPreAcceptance");
+const { cancelInstantBooking } = require("../services/bookingCancellation");
 const { getCancellationQuote } = require("../services/bookingCancellationQuote");
 const { getNextProviders } = require("../services/bookingNextProviders");
 const { getProviderOffers } = require("../services/bookingProviderOffers");
@@ -12,7 +12,7 @@ const { sendNextOffer } = require("../services/bookingSendNext");
 const { contestNoShow } = require("../services/bookingNoShowContest");
 const { createBookingRequest } = require("../services/bookingRequest");
 const { acceptBookingOffer } = require("../services/bookingAcceptance");
-const { resolveAuthorization, fixBookingPayment, cancelPaymentWindow } = require("../services/bookingAuthorization");
+const { resolveAuthorization, fixBookingPayment } = require("../services/bookingAuthorization");
 const { instantTestFlowEnabled } = require("@utils/bookingEligibility");
 
 // Runs a service call and maps its { error, status, data } shape onto sendResponse.
@@ -37,11 +37,13 @@ const handle = (successKey, fn, { ids = [] } = {}) => async (req, res) => {
 const loc = (req) => ({ lat: req.body?.lat, lng: req.body?.lng });
 
 const quoteHandler = handle("instant_quote", (req) => instantBooking.quote({ ...req.query, userId: req.user._id }));
-const cancel = async (req) => {
-  const result = await cancelBeforeAcceptance({ bookingId: req.params.id, userId: req.user._id });
-  return result.error === "booking_cannot_cancel" ?
-    cancelPaymentWindow({ bookingId: req.params.id, userId: req.user._id }) : result;
-};
+const cancel = (req) => cancelInstantBooking({
+  bookingId: req.params.id,
+  userId: req.user._id,
+  businessId: req.user.businessId,
+  userType: req.user.userType,
+  reason: req.body?.reason,
+});
 const quote = (req, res) => {
   const objectIdFields = req.query.promotionId ? ["targetId", "promotionId"] : ["targetId"];
   if (!validateParams(req, res, {
@@ -151,7 +153,7 @@ module.exports = {
   ),
   providerCancel: handle(
     "instant_provider_canceled",
-    (req) => instantBooking.providerCancel({ id: req.params.id, businessId: req.user.businessId, reason: req.body.reason }),
+    cancel,
     { ids: ["id"] },
   ),
   contestNoShow: handle(

@@ -220,6 +220,7 @@ const businessProfileSchema = new mongoose.Schema(
       responseCount: { type: Number, default: 0 },
       completed: { type: Number, default: 0 },
       penaltyWeight30d: { type: Number, default: 0 },
+      cancellationCount: { type: Number, default: 0, min: 0 },
       lastOfferAt: { type: Date, default: null },
     },
 

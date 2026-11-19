@@ -21,8 +21,8 @@ stub("../backend/app/services/bookingCheckIn", {
   recordCustomerArrival: async (args) => { arrival = args; return { data: { customerArrived: {} } }; },
   startInstantBooking: async (args) => { started = args; return { data: { status: "ongoing" } }; },
 });
-stub("../backend/app/services/bookingPreAcceptance", {
-  cancelBeforeAcceptance: async (args) => { canceled = args; return { data: { status: "canceled" } }; },
+stub("../backend/app/services/bookingCancellation", {
+  cancelInstantBooking: async (args) => { canceled = args; return { data: { status: "canceled" } }; },
 });
 stub("../backend/app/services/bookingNoShowContest", {
   contestNoShow: async (args) => { contested = args; return { data: { noShow: { status: "contested" } } }; },
@@ -87,8 +87,15 @@ test("acceptance remains gated without closing an offer through the legacy engin
 
 test("cancel and contest use the v2 services and authenticated identities", async () => {
   const bookingId = new mongoose.Types.ObjectId().toString();
-  await controller.cancelBooking({ params: { id: bookingId }, user: { _id: "customer" }, body: {} }, {});
-  assert.deepEqual(canceled, { bookingId, userId: "customer" });
+  await controller.cancelBooking({ params: { id: bookingId }, user: { _id: "customer", userType: "user" }, body: {} }, {});
+  assert.deepEqual(canceled, {
+    bookingId, userId: "customer", businessId: undefined, userType: "user", reason: undefined,
+  });
+  await controller.providerCancel({ params: { id: bookingId },
+    user: { _id: "provider", businessId: "business", userType: "business" }, body: { reason: "unavailable" } }, {});
+  assert.deepEqual(canceled, {
+    bookingId, userId: "provider", businessId: "business", userType: "business", reason: "unavailable",
+  });
   await controller.contestNoShow({ params: { id: bookingId }, user: { businessId: "provider" }, body: { note: "Arrived" } }, {});
   assert.deepEqual(contested, { bookingId, businessId: "provider", note: "Arrived" });
 });

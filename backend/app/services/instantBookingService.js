@@ -7,6 +7,7 @@ const { Services } = require("@models/Services");
 const { Promotion } = require("@models/Promotions");
 const PromotionUsage = require("@models/PromotionUsage");
 const { User } = require("@models/UserModel");
+const { getFullImageUrl } = require("@utils/imageHelper");
 const { NotificationTypes } = require("@models/Notifications");
 const { userCache } = require("@config/nodeCache");
 const { sendUserNotifications } = require("../../commonModules/controllers/communicationController");
@@ -17,12 +18,17 @@ const {
   toCents,
 } = require("@utils/instantPricing");
 const { Packages } = require("@models/Packages");
+const Review = require("@models/Review");
 const { recordPenalty } = require("./penaltyService");
 const { startSearch, cancelSearch } = require("./instantOfferService");
 const { holdInstantPayment, releaseHold, beginCapture } = require("./instantPaymentService");
 const { transitionBooking } = require("./bookingStateMachine");
 const { runCompletionCapture } = require("./bookingCompletionCapture");
 const { AGREEMENT_TEXT, AGREEMENT_VERSION, cancellationPolicyText } = require("@utils/bookingPolicy");
+const { reviewStatsPipeline } = require("@utils/aggregationHelper");
+const { resolveBadgeOptionName } = require("@utils/badgeUtil");
+const Conversation = require("../../commonModules/chatModule/models/Conversation");
+const { TERMINAL_BOOKING_STATUSES } = require("../../commonModules/chatModule/services/conversationGateService");
 
 const ACTIVE_STATUSES = ["searching", "scheduled"];
 
@@ -258,9 +264,137 @@ const getInstantBooking = async ({ id, userId, businessId }) => {
   const filter = { _id: id, mode: "instant", ...(businessId ? { business: businessId } : { user: userId }) };
   const booking = await Booking.findOne(filter, "-authorization -stripePaymentMethodId").lean();
   if (!booking) return { error: "booking_not_found", status: 404 };
+  const [customer, business] = await Promise.all([
+    User.findById(booking.user, "name profileIcon email").lean(),
+    BusinessProfile.findById(booking.business, "businessName image user location").lean(),
+  ]);
+  const [providerUser, targetEntity, ratingStats, conversation, reviewDoc] = await Promise.all([
+    business?.user ? User.findById(business.user, "email").lean() : null,
+    booking.target?.[0]?._id
+      ? (booking.scope === "service" ? Services : Packages).findById(booking.target[0]._id).lean()
+      : null,
+    booking.target?.[0]?._id
+      ? Review.aggregate(
+          reviewStatsPipeline({
+            reviewType: booking.scope === "service" ? "services" : "packages",
+            object: booking.target[0]._id,
+          }),
+        ).then(([stats]) => stats || null)
+      : null,
+    business?.user
+      ? Conversation.findOne({
+          type: "direct",
+          "participants.user": { $all: [booking.user, business.user] },
+          $expr: { $eq: [{ $size: "$participants" }, 2] },
+        }).lean()
+      : null,
+    Review.findOne({ booking: booking._id }).populate("subject", "name profileIcon").lean(),
+  ]);
+  const userInfo = customer
+    ? {
+        _id: customer._id,
+        name: customer.name,
+        email: customer.email,
+        profileIcon: getFullImageUrl(customer.profileIcon),
+        location: booking.flow?.location || null,
+      }
+    : null;
+  const businessInfo = business
+    ? {
+        _id: business._id,
+        user: business.user,
+        businessName: business.businessName,
+        image: getFullImageUrl(business.image),
+        email: providerUser?.email || null,
+        location: business.location || null,
+      }
+    : null;
+
+  if (booking.target?.[0]) {
+    const target = booking.target[0];
+    const entityPhotos = targetEntity?.photos || target.photos || [];
+    const photos = entityPhotos.map((photo) => getFullImageUrl(photo)).filter(Boolean);
+    const imageKey =
+      booking.scope === "service"
+        ? entityPhotos[0]
+        : targetEntity?.coverImage || entityPhotos[0] || target.image;
+    const optionName = targetEntity?.preferredServiceType
+      ? await resolveBadgeOptionName(targetEntity.preferredServiceType)
+      : null;
+    target.name = target.name || targetEntity?.name;
+    target.price = target.price ?? targetEntity?.price;
+    target.photos = photos;
+    target.image = getFullImageUrl(imageKey);
+    target.description = targetEntity?.description || target.description || "";
+    target.sessionSlotMins = targetEntity?.sessionSlotMins ?? target.sessionSlotMins ?? null;
+    target.rating = {
+      avgRating: Math.round((ratingStats?.avgRating || 0) * 10) / 10,
+      totalReviews: ratingStats?.totalReviews || 0,
+    };
+    target.preferredServiceType = {
+      optionName:
+        optionName ||
+        (typeof target.preferredServiceType === "string"
+          ? target.preferredServiceType
+          : target.preferredServiceType?.optionName || null),
+    };
+  }
+
+  booking.userInfo = userInfo;
+  booking.businessInfo = businessInfo;
+  booking.customer = customer
+    ? {
+        _id: customer._id,
+        name: customer.name,
+        image: getFullImageUrl(customer.profileIcon),
+        email: customer.email,
+      }
+    : null;
+  booking.provider = business
+    ? {
+        _id: business._id,
+        name: business.businessName,
+        image: getFullImageUrl(business.image),
+        email: providerUser?.email || null,
+      }
+    : null;
+  booking.canMessage =
+    Boolean(conversation && conversation.chatStatus !== "closed") &&
+    !TERMINAL_BOOKING_STATUSES.includes(booking.status);
+  booking.conversationId = conversation?._id || null;
+  if (reviewDoc && (!businessId || reviewDoc.status === "approved")) {
+    const { reviewType, object, subject, __v, ...reviewDetails } = reviewDoc;
+    booking.review = {
+      ...reviewDetails,
+      reviewer: subject
+        ? {
+            ...subject,
+            profileIcon: subject.profileIcon ? getFullImageUrl(subject.profileIcon) : subject.profileIcon,
+          }
+        : subject,
+    };
+  } else {
+    booking.review = null;
+  }
   if (booking.status === "awaiting_customer_decision" && booking.flow?.attemptExpiresAt) {
     booking.awaitingDecisionDeadline = booking.flow.attemptExpiresAt;
   }
+
+  if (!businessId) {
+    delete booking.payout;
+    if (booking.capture) {
+      delete booking.capture.stripeFeeCents;
+      delete booking.capture.chargeId;
+    }
+    if (booking.cancellation) {
+      delete booking.cancellation.providerCancellationNumber;
+      delete booking.cancellation.providerPenalty;
+      delete booking.cancellation.warningIssued;
+      delete booking.cancellation.rankingReductionApplied;
+      delete booking.cancellation.suspendedUntil;
+    }
+  }
+
   return { data: booking };
 };
 

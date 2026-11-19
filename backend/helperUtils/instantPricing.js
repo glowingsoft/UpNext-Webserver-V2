@@ -77,8 +77,8 @@ const computeInstantPricing = ({ servicePriceCents, promoDiscountCents = 0, sett
   };
 };
 
-// What a non-refundable client cancellation after accept captures.
-const cancellationCaptureCents = (pricing) => Math.min(pricing.heldCents, pricing.depositCents + pricing.chargeFeeCents);
+// Legacy cancellation path: never capture the booking fee as a cancellation charge.
+const cancellationCaptureCents = (pricing) => Math.min(pricing.heldCents, pricing.depositCents);
 
 module.exports = {
   toCents,

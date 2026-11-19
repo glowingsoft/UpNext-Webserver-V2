@@ -822,6 +822,7 @@ const getUserBookings = async ({ userId, business, page, limit, status, scope, d
   const pipeline = [
     { $match: filter },
     { $sort: { createdAt: -1 } },
+    userLookup,
     businessLookup,
     paymentLookup,
     flattenLookups,
@@ -843,6 +844,20 @@ const getUserBookings = async ({ userId, business, page, limit, status, scope, d
 
   const bookings = rawBookings.map(({ paymentInfo, ...booking }) => ({
     ...booking,
+    customer: booking.userInfo
+      ? {
+          _id: booking.userInfo._id,
+          name: booking.userInfo.name,
+          image: booking.userInfo.profileIcon,
+        }
+      : null,
+    business: booking.businessInfo
+      ? {
+          _id: booking.businessInfo._id,
+          name: booking.businessInfo.businessName,
+          image: booking.businessInfo.image,
+        }
+      : null,
     source: booking.source,
     payment: paymentStatusLabel(paymentInfo?.status),
   }));

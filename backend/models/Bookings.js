@@ -160,6 +160,20 @@ const bookingSchema = new Schema(
         return this.mode === "instant";
       },
     },
+    cancellation: {
+      actor: { type: String, enum: ["user", "business"] },
+      reason: { type: String },
+      canceledAt: { type: Date },
+      policy: { type: String, enum: ["non_refundable", "refundable_24h"] },
+      depositCents: { type: Number, min: 0 },
+      chargeCents: { type: Number, min: 0 },
+      refundableDepositCents: { type: Number, min: 0, default: 0 },
+      providerPenalty: { type: Schema.Types.ObjectId, ref: "ProviderPenalty" },
+      providerCancellationNumber: { type: Number, min: 1 },
+      warningIssued: { type: Boolean, default: false },
+      rankingReductionApplied: { type: Boolean, default: false },
+      suspendedUntil: { type: Date, default: null },
+    },
     // Instant capture bookkeeping: what is owed, retries, and how it ended.
     capture: {
       kind: { type: String, enum: ["completion", "cancellation"] },

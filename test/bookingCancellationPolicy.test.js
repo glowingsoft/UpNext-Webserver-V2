@@ -10,17 +10,17 @@ const booking = (policy, isAvailableNow, hours) => ({
   flow: { isAvailableNow, appointmentStart: new Date(now.getTime() + hours * 3600000) },
 });
 
-test("refundable advance bookings retain only the fee at least 24 hours ahead", () => {
-  assert.equal(clientCancellationCaptureCents(booking("refundable_24h", false, 24), now), 700);
-  assert.equal(clientCancellationCaptureCents(booking("refundable_24h", false, 23.99), now), 2200);
+test("refundable advance bookings capture no deposit at least 24 hours ahead", () => {
+  assert.equal(clientCancellationCaptureCents(booking("refundable_24h", false, 24), now), 0);
+  assert.equal(clientCancellationCaptureCents(booking("refundable_24h", false, 23.99), now), 1500);
 });
 
-test("available-now and non-refundable bookings retain deposit plus discounted fee", () => {
-  assert.equal(clientCancellationCaptureCents(booking("refundable_24h", true, 0.5), now), 2200);
-  assert.equal(clientCancellationCaptureCents(booking("non_refundable", false, 48), now), 2200);
+test("available-now and non-refundable bookings retain only the deposit", () => {
+  assert.equal(clientCancellationCaptureCents(booking("refundable_24h", true, 0.5), now), 1500);
+  assert.equal(clientCancellationCaptureCents(booking("non_refundable", false, 48), now), 1500);
   const discounted = booking("non_refundable", false, 48);
   discounted.pricing.chargeFeeCents = 200;
-  assert.equal(clientCancellationCaptureCents(discounted, now), 1700);
+  assert.equal(clientCancellationCaptureCents(discounted, now), 1500);
 });
 
 test("incomplete or inconsistent snapshots cannot determine a charge", () => {
