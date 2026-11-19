@@ -115,7 +115,7 @@ const toWaypoint = ([lng, lat]) => ({ waypoint: { location: { latLng: { latitude
  * One matrix call. Returns the element array, or null when the call itself
  * failed — the caller must not cache a transport failure as "no route".
  */
-const fetchMatrix = async (origin, destinations, travelMode) => {
+const fetchMatrix = async (origin, destinations, travelMode, fieldMask = "destinationIndex,distanceMeters,condition") => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -135,7 +135,7 @@ const fetchMatrix = async (origin, destinations, travelMode) => {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": process.env.GOOGLE_MAPS_API_KEY,
         // destinationIndex is required: elements can come back out of order
-        "X-Goog-FieldMask": "destinationIndex,distanceMeters,condition",
+        "X-Goog-FieldMask": fieldMask,
       },
       body: JSON.stringify(body),
     });
@@ -200,6 +200,67 @@ const resolveMode = async ({ origin, originKey, destinations, travelMode }) => {
   }
 
   return resolved;
+};
+
+/**
+ * Resolve driving duration from one origin to each destination. A null result
+ * means Google confirmed no route; an unavailable or incomplete matrix throws
+ * so callers cannot mistake an outage for an eligible provider.
+ */
+const resolveDrivingDurations = async ({ origin, destinations }) => {
+  if (!routeDistancesEnabled()) throw new Error("GOOGLE_MAPS_API_KEY is required to resolve travel duration");
+  if (!isValidCoords(origin)) throw new TypeError("Invalid origin coordinates");
+  if (!Array.isArray(destinations) || destinations.some((coords) => !isValidCoords(coords))) {
+    throw new TypeError("Invalid destination coordinates");
+  }
+  const originKey = origin.join(",");
+  const entries = [...new Map(destinations.map((coords) => {
+    const key = coords.join(",");
+    return [key, { key, coords }];
+  })).values()];
+  const results = new Map();
+  const misses = [];
+  const cache = redisCache();
+  const keyFor = (key) => `routeduration:DRIVE:${originKey}:${key}`;
+  const cached = await Promise.all(entries.map((entry) => cache.getJson(keyFor(entry.key))));
+  entries.forEach((entry, index) => {
+    const value = cached[index];
+    if (value && (value.seconds === null || (Number.isFinite(value.seconds) && value.seconds >= 0))) {
+      results.set(entry.key, value.seconds);
+    } else {
+      misses.push(entry);
+    }
+  });
+
+  for (let i = 0; i < misses.length; i += MAX_DESTINATIONS_PER_CALL) {
+    const chunk = misses.slice(i, i + MAX_DESTINATIONS_PER_CALL);
+    const elements = await fetchMatrix(
+      origin,
+      chunk.map((entry) => entry.coords),
+      "DRIVE",
+      "destinationIndex,duration,condition,status",
+    );
+    if (!elements) throw new Error("Travel duration matrix request failed");
+    const fresh = new Map();
+    for (const element of elements) {
+      const entry = chunk[element?.destinationIndex ?? 0];
+      if (!entry || fresh.has(entry.key)) throw new Error("Invalid travel duration matrix response");
+      if (element.status?.code) throw new Error(`Travel duration matrix element failed: ${element.status.code}`);
+      if (element.condition === "ROUTE_NOT_FOUND") {
+        fresh.set(entry.key, null);
+      } else if (element.condition === "ROUTE_EXISTS" && typeof element.duration === "string" && /^\d+(\.\d+)?s$/.test(element.duration)) {
+        fresh.set(entry.key, Number(element.duration.slice(0, -1)));
+      } else {
+        throw new Error("Invalid travel duration matrix element");
+      }
+    }
+    if (fresh.size !== chunk.length) throw new Error("Incomplete travel duration matrix response");
+    await Promise.all([...fresh].map(async ([key, seconds]) => {
+      results.set(key, seconds);
+      await cache.setJson(keyFor(key), { seconds }, CACHE_TTL_SECONDS);
+    }));
+  }
+  return destinations.map((coords) => results.get(coords.join(",")));
 };
 
 // Lowest of the two, as specified; either side may be missing.
@@ -303,6 +364,7 @@ const sortNearestFirst = (payload) => {
 module.exports = {
   attachRouteDistances,
   collectDistanceNodes,
+  resolveDrivingDurations,
   routeDistancesEnabled,
   sortNearestFirst,
 };

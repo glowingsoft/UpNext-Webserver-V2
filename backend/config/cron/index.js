@@ -11,6 +11,10 @@ const {
   runStatusTransitionCron,
 } = require("../../app/services/bookingLifecycleService");
 const { runOfferSweeper } = require("../../app/services/instantOfferService");
+const { runDecisionSweeper } = require("../../app/services/bookingDecisionSweeper");
+const { runBookingOfferExpiry } = require("../../app/services/bookingOfferResponse");
+const { runAttemptSweeper } = require("../../app/services/bookingAttemptSweeper");
+const { runAuthorizationSweeper } = require("../../app/services/bookingAuthorization");
 // Requiring this also registers the offer-engine event listeners (hold release, conversations)
 const { runInstantPaymentsCron } = require("../../app/services/instantPaymentService");
 const { refreshPenaltyState } = require("../../app/services/penaltyService");
@@ -89,6 +93,10 @@ const startCrons = () => {
      ⚡ CRON - Up Next offer expiry / reroute sweeper (every 5s)
      ====================================================== */
   cron.schedule("*/5 * * * * *", withLock("cron:instant-offer-sweeper", runOfferSweeper, 4));
+  cron.schedule("*/5 * * * * *", withLock("cron:booking-decision-sweeper", runDecisionSweeper, 4));
+  cron.schedule("*/5 * * * * *", withLock("cron:booking-offer-expiry", runBookingOfferExpiry, 4));
+  cron.schedule("*/5 * * * * *", withLock("cron:booking-attempt-expiry", runAttemptSweeper, 4));
+  cron.schedule("*/5 * * * * *", withLock("cron:booking-authorization", runAuthorizationSweeper, 4));
 
   /* ======================================================
      🕛 CRON - Penalty rolling-window refresh + suspension lift (every minute)

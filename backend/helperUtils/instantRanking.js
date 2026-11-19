@@ -2,7 +2,7 @@
 // the first offer always goes to the client's pick without ranking.
 
 const WEIGHTS = { distance: 0.35, acceptance: 0.25, speed: 0.15, reliability: 0.25 };
-const PENALTY_RANK_DROP_AT = 2; // weighted 30-day count at which the ranking drop applies
+const PENALTY_RANK_DROP_AT = 2;
 const PENALTY_RANK_FACTOR = 0.5;
 
 /**
@@ -29,7 +29,10 @@ const scoreCandidate = (c, { radiusKm, offerWindowSec }) => {
       WEIGHTS.speed * speed +
       WEIGHTS.reliability * reliability);
 
-  if ((c.penaltyWeight || 0) >= PENALTY_RANK_DROP_AT) score *= PENALTY_RANK_FACTOR;
+  if ((c.penaltyWeight || 0) >= PENALTY_RANK_DROP_AT ||
+      (stats.cancellationCount || 0) >= PENALTY_RANK_DROP_AT) {
+    score *= PENALTY_RANK_FACTOR;
+  }
   return Math.round(score * 100) / 100;
 };
 
