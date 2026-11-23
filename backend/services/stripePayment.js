@@ -42,7 +42,11 @@ async function createStripePayment({
     return paymentIntent;
   } catch (err) {
     console.error("createPayment error:", err.message);
-    throw new Error(`Failed to create payment: ${err.message}`);
+    const wrapped = new Error(`Failed to create payment: ${err.message}`);
+    // Callers need to tell a declined card from an outage
+    wrapped.stripeType = err.type;
+    wrapped.code = err.code;
+    throw wrapped;
   }
 }
 

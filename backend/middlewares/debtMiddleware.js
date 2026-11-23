@@ -13,12 +13,13 @@ const blockOutstandingDebt = async (req, res, next) => {
     if (req.user?.userType !== "user") return next();
 
     const dbUser = await User.findById(req.user._id).select("hasOutstandingDebt").lean();
-    if (!dbUser?.hasOutstandingDebt) return next();
+    if (!dbUser) return sendResponse({ res, statusCode: 404, translationKey: "user_not" });
 
     // The flag only says "something is owed"; the list says what, so the block
     // screen can show every unpaid booking instead of one and a locked account
     // the customer can't reason about.
     const debt = await getOutstandingDebt(req.user._id);
+    if (!debt.hasDebt) return next();
 
     return sendResponse({
       res,

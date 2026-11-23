@@ -206,6 +206,23 @@ const businessProfileSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // Set by the penalty ladder; isAvailable is flipped off alongside it and
+    // restored by the penalty refresh cron once this passes.
+    suspendedUntil: { type: Date, default: null },
+    // Counters feeding the ranking (see instantRanking).
+    matchStats: {
+      offersReceived: { type: Number, default: 0 },
+      offersAccepted: { type: Number, default: 0 },
+      offersDeclined: { type: Number, default: 0 },
+      offersExpired: { type: Number, default: 0 },
+      consecutiveTimeouts: { type: Number, default: 0, min: 0 },
+      responseSecTotal: { type: Number, default: 0 },
+      responseCount: { type: Number, default: 0 },
+      completed: { type: Number, default: 0 },
+      penaltyWeight30d: { type: Number, default: 0 },
+      cancellationCount: { type: Number, default: 0, min: 0 },
+      lastOfferAt: { type: Date, default: null },
+    },
 
     notificationPreferences: {
       type: businessNotificationPreferencesSchema,
@@ -216,5 +233,7 @@ const businessProfileSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+businessProfileSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("BusinessProfile", businessProfileSchema);

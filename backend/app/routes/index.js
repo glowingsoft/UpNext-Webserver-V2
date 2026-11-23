@@ -32,6 +32,7 @@ router.use("/services", serviceRoutes);
 router.use("/packages", packageRoutes);
 router.use("/promotions", promotionRoutes);
 router.use("/bookings", bookingRoutes);
+router.use("/instant", require("./instantRoutes"));
 router.use("/reviews", reviewRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/portfolios", portfolioRoutes);

@@ -62,6 +62,7 @@ const getBusinessOverview = async (req, res) => {
     const { data } = await getBusinesses({
       filter: { _id: new mongoose.Types.ObjectId(businessId) },
       req,
+      includeDeleted: true,
     });
     const business = data?.[0];
 

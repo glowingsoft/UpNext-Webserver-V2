@@ -148,7 +148,7 @@ const dateRangeForDay = (date) => {
 };
 
 // A slot's seats are held by every booking that still has a claim on it:
-// "scheduled", the "ongoing" ones the provider already started (a session can
+// "scheduled" or instant "confirmed", and the "ongoing" ones the provider already started (a session can
 // start before its slot begins, so that seat is obviously still taken), and
 // "requested" — a booking awaiting the provider's approval already has the
 // customer's card authorized, so it occupies the seat until it's accepted,
@@ -156,7 +156,7 @@ const dateRangeForDay = (date) => {
 // let a service with concurrentClients: 1 take unlimited requests for the same
 // slot whenever autoSelect was off, since the draft that held the seat during
 // checkout is deleted the moment the booking materializes as "requested".
-const SEAT_HOLDING_STATUSES = ["requested", "scheduled", "ongoing"];
+const SEAT_HOLDING_STATUSES = ["requested", "scheduled", "confirmed", "ongoing"];
 
 /**
  * How many clients may share one slot. Stored on the service/package as
@@ -311,8 +311,25 @@ const businessLookup = {
 
 const flattenLookups = {
   $addFields: {
-    userInfo: { $first: "$userInfo" },
-    businessInfo: { $first: "$businessInfo" },
+    userInfo: { $ifNull: [{ $first: "$userInfo" }, "$snapshot.userInfo"] },
+    businessInfo: {
+      $ifNull: [
+        { $first: "$businessInfo" },
+        {
+          $cond: [
+            { $ifNull: ["$snapshot.businessInfo", false] },
+            {
+              _id: "$snapshot.businessInfo._id",
+              businessName: "$snapshot.businessInfo.businessName",
+              image: s3UrlExpr("$snapshot.businessInfo.image"),
+              location: "$snapshot.businessInfo.location",
+              isAvailable: "$snapshot.businessInfo.isAvailable",
+            },
+            null,
+          ],
+        },
+      ],
+    },
     paymentInfo: { $first: "$paymentInfo" },
   },
 };
@@ -784,8 +801,9 @@ const countBookingStatuses = async (filter) => {
   return statuses;
 };
 
-const getUserBookings = async ({ userId, business, page, limit, status, scope, date, keyword, locale }) => {
+const getUserBookings = async ({ userId, business, page, limit, status, scope, date, keyword, locale, mode }) => {
   const filter = { user: new mongoose.Types.ObjectId(String(userId)) };
+  if (mode) filter.mode = mode;
   // Optional: scope to one business — e.g. "my bookings with this business" tab
   if (business) filter.business = new mongoose.Types.ObjectId(String(business));
   if (status) filter.status = status;
@@ -804,13 +822,15 @@ const getUserBookings = async ({ userId, business, page, limit, status, scope, d
   const pipeline = [
     { $match: filter },
     { $sort: { createdAt: -1 } },
+    userLookup,
     businessLookup,
     paymentLookup,
-    { $addFields: { businessInfo: { $first: "$businessInfo" }, paymentInfo: { $first: "$paymentInfo" } } },
+    flattenLookups,
     ...canMessageLookup,
     ...flattenBookingDetails(locale),
     { $unset: "business" },
   ];
+  if (mode === "instant") pipeline.push({ $unset: ["authorization", "stripePaymentMethodId"] });
   if (page && limit) {
     pipeline.push({ $skip: (parseInt(page) - 1) * parseInt(limit) });
     pipeline.push({ $limit: parseInt(limit) });
@@ -824,6 +844,20 @@ const getUserBookings = async ({ userId, business, page, limit, status, scope, d
 
   const bookings = rawBookings.map(({ paymentInfo, ...booking }) => ({
     ...booking,
+    customer: booking.userInfo
+      ? {
+          _id: booking.userInfo._id,
+          name: booking.userInfo.name,
+          image: booking.userInfo.profileIcon,
+        }
+      : null,
+    business: booking.businessInfo
+      ? {
+          _id: booking.businessInfo._id,
+          name: booking.businessInfo.businessName,
+          image: booking.businessInfo.image,
+        }
+      : null,
     source: booking.source,
     payment: paymentStatusLabel(paymentInfo?.status),
   }));
@@ -876,13 +910,7 @@ const getBusinessBookings = async ({
     userLookup,
     businessLookup,
     paymentLookup,
-    {
-      $addFields: {
-        userInfo: { $first: "$userInfo" },
-        businessInfo: { $first: "$businessInfo" },
-        paymentInfo: { $first: "$paymentInfo" },
-      },
-    },
+    flattenLookups,
     ...canMessageLookup,
     ...flattenBookingDetails(locale),
     { $unset: "business" },
@@ -980,7 +1008,7 @@ const getBillingHistory = async ({ businessId, page = 1, limit = 10, keyword, st
     { $sort: { createdAt: -1 } },
     userLookup,
     paymentLookup,
-    { $addFields: { userInfo: { $first: "$userInfo" }, paymentInfo: { $first: "$paymentInfo" } } },
+    flattenLookups,
   ];
 
   if (keyword) {
@@ -1139,13 +1167,7 @@ const getAllBookingsAdmin = async ({ page, limit, status, scope, date, businessI
     userLookup,
     businessLookup,
     paymentLookup,
-    {
-      $addFields: {
-        userInfo: { $first: "$userInfo" },
-        businessInfo: { $first: "$businessInfo" },
-        paymentInfo: { $first: "$paymentInfo" },
-      },
-    },
+    flattenLookups,
     ...flattenBookingDetails(locale),
     { $unset: "business" },
   ];
@@ -1368,6 +1390,7 @@ const acceptBooking = async ({ id, businessId }) => {
     return { error: "booking_not_yours", status: 403 };
   }
   if (booking.status !== "requested") return { error: "booking_cannot_accept", status: 400 };
+  if (booking.mode === "instant") return { error: "booking_use_instant_flow", status: 400 };
 
   const { entity } = await resolveEntity(booking.scope, booking.target[0]._id);
   if (!entity) return { error: "booking_entity_not_found", status: 404 };
@@ -1404,6 +1427,7 @@ const startBooking = async ({ id, businessId, timezone = "UTC" }) => {
     return { error: "booking_not_yours", status: 403 };
   }
   if (booking.status !== "scheduled") return { error: "booking_cannot_start", status: 400 };
+  if (booking.mode === "instant") return { error: "booking_use_instant_flow", status: 400 };
 
   // Same timezone reference as the detail page's canStart/timer, so the
   // window the provider sees matches what the mutation actually enforces.
@@ -1436,6 +1460,7 @@ const rejectBooking = async ({ id, businessId, reason }) => {
     return { error: "booking_not_yours", status: 403 };
   }
   if (booking.status !== "requested") return { error: "booking_cannot_reject", status: 400 };
+  if (booking.mode === "instant") return { error: "booking_use_instant_flow", status: 400 };
 
   const rejectReason = reason || "Stylist rejected your Booking Request";
   booking.status = "canceled";
@@ -1469,6 +1494,7 @@ const cancelBooking = async ({ id, requesterId, businessId, reason }) => {
   const isUser = booking.user.toString() === requesterId.toString();
   const isBusiness = businessId && booking.business.toString() === businessId.toString();
   if (!isUser && !isBusiness) return { error: "booking_not_yours", status: 403 };
+  if (booking.mode === "instant") return { error: "booking_use_instant_flow", status: 400 };
 
   if (!["requested", "scheduled"].includes(booking.status)) {
     return { error: "booking_cannot_cancel", status: 400 };
@@ -1791,6 +1817,7 @@ const completeBooking = async ({ id, businessId }) => {
   }
 
   const now = new Date();
+  if (booking.mode === "instant") return { error: "booking_use_instant_flow", status: 400 };
   const sessionEnded = slotEndDate(booking.date, booking.slot) <= now;
   const canComplete = booking.status === "ongoing" || (booking.status === "scheduled" && sessionEnded);
   if (!canComplete) return { error: "booking_cannot_complete", status: 400 };
@@ -2076,7 +2103,7 @@ const getBookingsCalendar = async ({ userId, businessId, userType, range, date, 
     { $sort: { date: 1, "slot.open": 1 } },
     userLookup,
     businessLookup,
-    { $addFields: { userInfo: { $first: "$userInfo" }, businessInfo: { $first: "$businessInfo" } } },
+    flattenLookups,
     {
       $project: {
         _id: 1,

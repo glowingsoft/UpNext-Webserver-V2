@@ -834,7 +834,7 @@ const createOrUpdateBusinessProfile = async (req, res) => {
       const needToVerifyList = ["Licensed Professional"];
       const needsVerification = categoryObjs.some((c) => needToVerifyList.includes(c?.translations?.en || c?.name));
       const certStatus = existingProfile?.certifications?.status;
-      if (needsVerification && !["approved", "rejected"].includes(certStatus)) {
+      if (needsVerification && certStatus === "pending") {
         updateData.status = "pending";
       }
     }
@@ -1514,7 +1514,7 @@ const businessSortMap = {
 const NEAREST_SORT = "distance_near_far";
 const businessSortList = ["best_match", NEAREST_SORT, ...Object.keys(businessSortMap)];
 
-const getBusinesses = async ({ req, filter, naturalSearch = null }) => {
+const getBusinesses = async ({ req, filter, naturalSearch = null, includeDeleted = false }) => {
   try {
     const {
       page,
@@ -1533,9 +1533,10 @@ const getBusinesses = async ({ req, filter, naturalSearch = null }) => {
     } = req?.query || {};
     filter = { ...(filter || {}) };
     if (req?.user?.userType === "admin") {
-      // Admin can see every status, or narrow to one via ?status= — non-admins
-      // are always restricted to active businesses regardless of this param.
+      // Deleted profiles are hidden by default, but admins can select their
+      // status explicitly. Non-admins are always restricted to active businesses.
       if (status) filter.status = status;
+      else if (!includeDeleted) filter.status = { $ne: "deleted" };
     } else {
       filter.status = "active";
     }
@@ -1669,7 +1670,7 @@ const countBusinessStatuses = async (filter = {}) => {
     statusList[status] = 0;
   });
   counts.forEach(({ _id, count }) => {
-    statusList.all += count;
+    if (_id !== "deleted") statusList.all += count;
     if (_id in statusList) statusList[_id] = count;
   });
   return statusList;

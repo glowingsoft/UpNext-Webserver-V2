@@ -23,6 +23,7 @@ router.use("/support", supportRoutes);
 router.use("/help-center", helpCenterRoutes);
 router.use("/customers", customerRoutes);
 router.use("/bookings", bookingRoutes);
+router.use("/instant", require("./instantRoutes.js"));
 router.use("/businesses", businessRoutes);
 router.use("/badges", badgeRoutes);
 router.use("/tags", tagRoutes);

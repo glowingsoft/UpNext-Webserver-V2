@@ -896,16 +896,11 @@ const socialAuth = async (req, res) => {
       // check when the client actually asked for one.
       if (userType) {
         const roles = existingUser.accountState.roles || [];
-        if (roles.length === 0) {
-          // Legacy social signups were saved with roles: [] — grant the requested one
-          existingUser.accountState.roles = [userType];
-        } else if (!roles.includes(userType)) {
-          return sendResponse({
-            res,
-            statusCode: 403,
-            translationKey: `dont_have_profile_for_${userType}`,
-          });
+
+        if (!roles.includes(userType)) {
+          existingUser.accountState.roles = [...roles, userType];
         }
+
         if (existingUser.accountState.userType !== userType) {
           existingUser.accountState.userType = userType;
         }

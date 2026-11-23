@@ -19,6 +19,7 @@ const runBookingCompletionReminderCron = async () => {
   // - Booking date is today or in the past (session may have ended)
   // - Either first reminder not sent, or second reminder due (24h after first)
   const bookings = await Booking.find({
+    mode: "scheduled",
     status: "scheduled",
     date: { $lte: now },
     $or: [
