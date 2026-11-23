@@ -137,6 +137,8 @@ async function handlePaymentCaptured(paymentIntent) {
   try {
     // Instant bookings record their own capture (partial amounts, fee, payout)
     if (String(paymentIntent.metadata?.purpose || "").startsWith("instant")) return;
+    const booking = await findBookingForIntent(paymentIntent);
+    if (booking?.capture?.safeguarded) return;
 
     await Payment.findOneAndUpdate(
       { stripePaymentId: paymentIntent.id },
@@ -147,7 +149,6 @@ async function handlePaymentCaptured(paymentIntent) {
       },
     );
 
-    const booking = await findBookingForIntent(paymentIntent);
     if (booking && !["captured", "partially_captured"].includes(booking.paymentStatus)) {
       const clearedADebt = booking.paymentStatus === "failed";
       booking.paymentStatus = "captured";

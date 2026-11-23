@@ -2,47 +2,121 @@ const ProviderPenalty = require("@models/ProviderPenalty");
 const BusinessProfile = require("@models/BusinessProfile");
 const { getInstantSettings } = require("@utils/instantPricing");
 
-const PENALTY_WEIGHTS = { cancellation: 1, no_show: 2 };
+const PENALTY_WEIGHTS = { no_show: 2 };
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Rolling weighted count of cancellations + no-shows per provider, straight
-// from the ledger (matchStats.penaltyWeight30d is only a mirror of this).
-const rollingWeights = async (providerIds, windowDays) => {
+// Rolling no-show weight; cancellations use the provider's lifetime counter.
+const rollingWeights = async (providerIds, windowDays, session) => {
   const since = new Date(Date.now() - windowDays * DAY_MS);
-  const rows = await ProviderPenalty.aggregate([
-    { $match: { provider: { $in: providerIds }, type: { $in: Object.keys(PENALTY_WEIGHTS) }, createdAt: { $gte: since } } },
+  const aggregation = ProviderPenalty.aggregate([
+    { $match: { provider: { $in: providerIds }, type: "no_show", createdAt: { $gte: since } } },
     { $group: { _id: "$provider", weight: { $sum: "$weight" } } },
   ]);
+  if (session) aggregation.session(session);
+  const rows = await aggregation;
   return new Map(rows.map((r) => [String(r._id), r.weight]));
 };
 
-/**
- * Ladder over the rolling weighted count (a no-show weighs 2):
- *   1   warning only
- *   2+  ranking drop + deduction from the next payout
- *   3+  also a temporary suspension
- * The unique {booking, type} index makes a retried cancel a no-op.
- */
-const recordPenalty = async ({ providerId, bookingId, type, note }) => {
+const getCancellationCount = async (providerId, profileCount = 0, session) => {
+  const query = ProviderPenalty.countDocuments({ provider: providerId, type: "cancellation" });
+  if (session) query.session(session);
+  return Math.max(profileCount || 0, await query);
+};
+
+const cancellationPenaltyFor = (cancellationNumber, settings) => ({
+  deductionCents: cancellationNumber >= 2 ? settings.penaltyDeductionCents : 0,
+  warningIssued: cancellationNumber === 1,
+  rankingReductionApplied: cancellationNumber >= 2,
+  suspensionHours: cancellationNumber >= 3 ? settings.suspensionHours : 0,
+});
+
+const quoteCancellationPenalty = async ({ providerId, cancellationCount = 0 }) => {
   const settings = await getInstantSettings();
+  if (providerId) cancellationCount = await getCancellationCount(providerId, cancellationCount);
+  const nextNumber = cancellationCount + 1;
+  return {
+    cancellationNumber: nextNumber,
+    ...cancellationPenaltyFor(nextNumber, settings),
+  };
+};
+
+const recordPenalty = async ({ providerId, bookingId, type, note, session, now = new Date() }) => {
+  const settings = await getInstantSettings();
+  if (type === "cancellation") {
+    if (!bookingId) throw new TypeError("bookingId is required for a cancellation penalty");
+    const prior = await ProviderPenalty.findOne({ provider: providerId, booking: bookingId, type })
+      .session(session || null).lean();
+    if (prior) return { duplicate: true, penalty: prior };
+
+    const priorCancellationCount = await getCancellationCount(providerId, 0, session);
+    const profile = await BusinessProfile.findOneAndUpdate(
+      { _id: providerId },
+      { $inc: { "matchStats.cancellationCount": 1 } },
+      { new: true, session, projection: "matchStats.cancellationCount" },
+    );
+    if (!profile) throw new Error("Cancellation penalty provider not found");
+    const cancellationNumber = Math.max(profile.matchStats.cancellationCount, priorCancellationCount + 1);
+    if (profile.matchStats.cancellationCount !== cancellationNumber) {
+      await BusinessProfile.updateOne(
+        { _id: providerId },
+        { $set: { "matchStats.cancellationCount": cancellationNumber } },
+        { session },
+      );
+    }
+    const policy = cancellationPenaltyFor(cancellationNumber, settings);
+    const suspendedUntil = policy.suspensionHours
+      ? new Date(now.getTime() + policy.suspensionHours * 60 * 60 * 1000)
+      : null;
+    const [penalty] = await ProviderPenalty.create([{
+      provider: providerId,
+      booking: bookingId,
+      type,
+      weight: 1,
+      cancellationNumber,
+      warningIssued: policy.warningIssued,
+      rankingReductionApplied: policy.rankingReductionApplied,
+      deductionCents: policy.deductionCents,
+      appliedAt: policy.deductionCents === 0 ? now : null,
+      suspendedUntil,
+      note,
+    }], { session });
+
+    if (suspendedUntil) {
+      await BusinessProfile.updateOne(
+        { _id: providerId },
+        { $set: { isAvailable: false, suspendedUntil } },
+        { session },
+      );
+    }
+    return {
+      penalty,
+      total: cancellationNumber,
+      cancellationNumber,
+      deductionCents: policy.deductionCents,
+      warningOnly: policy.warningIssued,
+      rankingReductionApplied: policy.rankingReductionApplied,
+      suspendedUntil,
+    };
+  }
+
   const weight = PENALTY_WEIGHTS[type];
   if (!weight) throw new Error(`Unknown penalty type: ${type}`);
 
-  const before = (await rollingWeights([providerId], settings.penaltyWindowDays)).get(String(providerId)) || 0;
+  const before = (await rollingWeights([providerId], settings.penaltyWindowDays, session)).get(String(providerId)) || 0;
   const total = before + weight;
   const deductionCents = total >= 2 ? settings.penaltyDeductionCents : 0;
 
   let penalty;
   try {
-    penalty = await ProviderPenalty.create({
+    [penalty] = await ProviderPenalty.create([{
       provider: providerId,
       booking: bookingId,
       type,
       weight,
       deductionCents,
-      appliedAt: deductionCents === 0 ? new Date() : null,
+      appliedAt: deductionCents === 0 ? now : null,
       note,
-    });
+    }], { session });
   } catch (err) {
     if (err.code === 11000) return { duplicate: true };
     throw err;
@@ -51,11 +125,11 @@ const recordPenalty = async ({ providerId, bookingId, type, note }) => {
   const update = { "matchStats.penaltyWeight30d": total };
   let suspendedUntil = null;
   if (total >= 3) {
-    suspendedUntil = new Date(Date.now() + settings.suspensionHours * 60 * 60 * 1000);
+    suspendedUntil = new Date(now.getTime() + settings.suspensionHours * 60 * 60 * 1000);
     update.isAvailable = false;
     update.suspendedUntil = suspendedUntil;
   }
-  await BusinessProfile.updateOne({ _id: providerId }, { $set: update });
+  await BusinessProfile.updateOne({ _id: providerId }, { $set: update }, { session });
 
   return { penalty, total, deductionCents, suspendedUntil, warningOnly: total < 2 };
 };
@@ -124,4 +198,13 @@ const refreshPenaltyState = async () => {
   );
 };
 
-module.exports = { recordPenalty, rollingWeights, refreshPenaltyState, consumeDeductions, restoreDeductions };
+module.exports = {
+  recordPenalty,
+  quoteCancellationPenalty,
+  cancellationPenaltyFor,
+  getCancellationCount,
+  rollingWeights,
+  refreshPenaltyState,
+  consumeDeductions,
+  restoreDeductions,
+};

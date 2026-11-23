@@ -572,6 +572,7 @@ const getServices = async ({ filter = {}, req = {}, includeCounts = false }) => 
   // Nearest-first, before the pagination stage below — sorting after it would
   // only reorder whichever page happened to come back, not surface the closest
   // ones. Ignored without lat/lng, since there'd be no distance to sort on.
+  pipeline.push({ $sort: { createdAt: -1 } });
   if (sortBy === "distance_near_far" && lat != null && lng != null) {
     pipeline.push(...nearestFirstStages("$business.distanceKm"));
   }

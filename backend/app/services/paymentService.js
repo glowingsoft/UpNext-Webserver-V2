@@ -28,11 +28,14 @@ const OUTSTANDING_PAYMENT_STATUS = "failed";
  * Ordered oldest first — that is the one the customer is asked to settle next.
  */
 const getOutstandingDebt = async (userId) => {
-  // An instant booking whose capture is still being retried already blocks the
-  // client; the booking only reaches "failed" once the fallback charge also fails.
+  // An instant booking with an unpaid capture blocks the client during retries
+  // and after the fallback charge fails.
   const bookings = await Booking.find({
     user: userId,
-    $or: [{ paymentStatus: OUTSTANDING_PAYMENT_STATUS }, { mode: "instant", paymentStatus: "capture_retrying" }],
+    $or: [
+      { paymentStatus: OUTSTANDING_PAYMENT_STATUS },
+      { mode: "instant", paymentStatus: { $in: ["capture_retrying", "payment_due"] } },
+    ],
   })
     .select("bookingId target date business mode capture")
     .sort({ date: 1, createdAt: 1 })
@@ -249,8 +252,7 @@ const authorizeVaultedPayment = async ({ booking, user, entityStripe, offSession
 
 /**
  * Instant bookings: platform-only charge of exactly what was owed (no
- * destination, no application fee). The provider was already paid from
- * platform balance when the capture first failed, or is paid now.
+ * destination, no application fee). The provider is paid after the charge succeeds.
  */
 const settleInstantDebt = async ({ user, dbUser, booking, paymentMethod }) => {
   const { cancelStripePayment } = require("@services/stripePayment");
@@ -279,7 +281,8 @@ const settleInstantDebt = async ({ user, dbUser, booking, paymentMethod }) => {
       },
       off_session: false,
     });
-    if (!["succeeded", "processing"].includes(stripePayment.status)) {
+    if (stripePayment.status !== "succeeded") {
+      console.error(`Instant debt settlement ${stripePayment.id} is not complete: ${stripePayment.status}`);
       return { error: "debt_settlement_failed", status: 400 };
     }
 
@@ -301,6 +304,8 @@ const settleInstantDebt = async ({ user, dbUser, booking, paymentMethod }) => {
     booking.paymentStatus = booking.capture.kind === "cancellation" ? "partially_captured" : "captured";
     booking.capture.status = "fallback_charged";
     booking.capture.nextAttemptAt = null;
+    booking.capture.chargeId = undefined;
+    booking.capture.stripeFeeCents = undefined;
     await booking.save();
     if (oldPayment && oldPayment.status !== "captured") {
       await cancelStripePayment(oldPayment.stripePaymentId).catch(() => {});
@@ -334,14 +339,20 @@ const settleOutstandingDebt = async ({ user, bookingId, paymentMethod }) => {
     ? await Booking.findOne({ _id: bookingId, user: dbUser._id })
     : await Booking.findOne({
         user: dbUser._id,
-        $or: [{ paymentStatus: OUTSTANDING_PAYMENT_STATUS }, { mode: "instant", paymentStatus: "capture_retrying" }],
+        $or: [
+          { paymentStatus: OUTSTANDING_PAYMENT_STATUS },
+          { mode: "instant", paymentStatus: { $in: ["capture_retrying", "payment_due"] } },
+        ],
       }).sort({
         date: 1,
         createdAt: 1,
       });
 
   if (!booking) return { error: "booking_not_found", status: 404 };
-  const instantRetrying = booking.mode === "instant" && booking.paymentStatus === "capture_retrying";
+  if (booking.mode === "instant" && booking.capture?.safeguarded && booking.capture.status === "retrying") {
+    return { error: "instant_capture_recovery_pending", status: 409 };
+  }
+  const instantRetrying = booking.mode === "instant" && ["capture_retrying", "payment_due"].includes(booking.paymentStatus);
   if (booking.paymentStatus !== OUTSTANDING_PAYMENT_STATUS && !instantRetrying) {
     return { error: "no_outstanding_debt", status: 400 };
   }
@@ -434,7 +445,7 @@ const settleOutstandingDebt = async ({ user, bookingId, paymentMethod }) => {
  * Mark a capture failure and lock the user until the debt is settled.
  */
 const applyDebtLock = async ({ booking }) => {
-  booking.paymentStatus = OUTSTANDING_PAYMENT_STATUS;
+  booking.paymentStatus = booking.mode === "instant" ? "payment_due" : OUTSTANDING_PAYMENT_STATUS;
   await booking.save();
 
   const debt = await syncDebtLock(booking.user);

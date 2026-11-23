@@ -21,6 +21,7 @@ CONVENTIONS
       target[0].id    -> the service/package id  (for Service Details / reviews)
       date, slot { open, close }, preferredServiceType
       businessInfo { _id, businessName, image, location }
+      customer { _id, name, image }, business { _id, name, image }
       paymentInfo { status, amount }      (null until a charge exists)
       cancel { reason, by }               (only on canceled/rejected bookings)
 

@@ -3,7 +3,8 @@ const AdminSettings = require("@models/AdminSettings");
 const Dispute = require("@models/Dispute");
 const ProviderPenalty = require("@models/ProviderPenalty");
 const { sendResponse } = require("@utils/responseUtil");
-const { getInstantSettings, INSTANT_DEFAULTS } = require("@utils/instantPricing");
+const { getInstantSettings, mergeInstantSettings } = require("@utils/instantPricing");
+const { buildInstantSettingsUpdate } = require("@utils/instantSettingsUpdate");
 const { resolveNoShow } = require("../../app/services/instantBookingService");
 
 const fail = (res, err) => {
@@ -21,18 +22,27 @@ const getSettings = async (req, res) => {
 
 const updateSettings = async (req, res) => {
   try {
-    const $set = {};
-    for (const key of Object.keys(INSTANT_DEFAULTS)) {
-      if (req.body[key] === undefined) continue;
-      const value = Number(req.body[key]);
-      if (!Number.isFinite(value) || value < 0) {
-        return sendResponse({ res, statusCode: 400, translationKey: "invalid_setting", data: { field: key } });
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const doc = await AdminSettings.findOne({}, "instant __v").lean();
+      const result = buildInstantSettingsUpdate(req.body, mergeInstantSettings(doc?.instant));
+      if (result.error) {
+        return sendResponse({ res, statusCode: 400, translationKey: result.error, data: { field: result.field } });
       }
-      $set[`instant.${key}`] = value;
+      if (!doc) {
+        await AdminSettings.findOneAndUpdate({}, { $setOnInsert: {} }, { upsert: true, setDefaultsOnInsert: true });
+        continue;
+      }
+      const version = doc.__v === undefined ? { $exists: false } : doc.__v;
+      const updated = await AdminSettings.findOneAndUpdate(
+        { _id: doc._id, __v: version },
+        { $set: result.set, $inc: { __v: 1 } },
+        { new: true, runValidators: true },
+      ).lean();
+      if (updated) {
+        return sendResponse({ res, statusCode: 200, translationKey: "instant_settings", data: mergeInstantSettings(updated.instant) });
+      }
     }
-    if (!Object.keys($set).length) return sendResponse({ res, statusCode: 400, translationKey: "invalid_setting" });
-    await AdminSettings.findOneAndUpdate({}, { $set }, { upsert: true });
-    return sendResponse({ res, statusCode: 200, translationKey: "instant_settings", data: await getInstantSettings() });
+    return sendResponse({ res, statusCode: 409, translationKey: "instant_settings_conflict" });
   } catch (err) {
     return fail(res, err);
   }

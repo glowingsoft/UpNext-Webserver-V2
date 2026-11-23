@@ -10047,78 +10047,565 @@
     },
     {
       "name": "Up Next (Instant)",
-      "description": "Instant booking flow. Run order: 1 Admin settings (optional) -> 2 Client Create booking -> 3 Dev run sweeper (optional) -> 4 Provider Current offer + Accept -> 5 Provider Arrived -> 6 Provider Complete (captures + pays provider) -> 7 Dev run payments cron. Needs userToken, businessToken, adminToken, instantServiceId and a Stripe test payment method id (e.g. pm_card_visa). Use pm_card_chargeCustomerFail for a declined hold and 4000000000000077 funded balance for provider transfers.",
+      "description": "Booking Flow v2 is incomplete and request creation, acceptance and card recovery are enabled only in non-production with Stripe test keys. Confirmed cancellation, completion and payout are not ready. See POSTMAN_BOOKING_FLOW_GUIDE.md.",
       "item": [
         {
-          "name": "Client",
-          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{userToken}}", "type": "string" }] },
+          "name": "Customer",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "key": "token",
+                "value": "{{userToken}}",
+                "type": "string"
+              }
+            ]
+          },
           "item": [
             {
-              "name": "Quote",
+              "name": "0. Quote Booking",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Quote returns payable amount in USD before tax\", function () {",
+                      "  pm.response.to.have.status(200);",
+                      "  var jsonData = pm.response.json();",
+                      "  pm.expect(jsonData.data.currency).to.equal(\"USD\");",
+                      "  pm.expect(jsonData.data.taxIncluded).to.equal(false);",
+                      "  pm.expect(jsonData.data.amountDueCents).to.equal(jsonData.data.pricing.totalCents);",
+                      "  pm.expect(jsonData.data.pricing.servicePriceCents).to.be.a(\"number\");",
+                      "  pm.expect(jsonData.data.pricing.chargeFeeCents).to.be.a(\"number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{url}}app/instant/quote?targetId={{instantServiceId}}",
-                  "host": ["{{url}}app"],
-                  "path": ["instant", "quote"],
-                  "query": [{ "key": "targetId", "value": "{{instantServiceId}}" }, { "key": "promotionId", "value": "", "disabled": true }]
+                  "raw": "{{url}}app/instant/quote?scope=service&targetId={{instantServiceId}}",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "quote"
+                  ],
+                  "query": [
+                    {
+                      "key": "scope",
+                      "value": "service"
+                    },
+                    {
+                      "key": "targetId",
+                      "value": "{{instantServiceId}}"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
             },
             {
-              "name": "Create instant booking",
+              "name": "1. Send Booking Request",
               "event": [
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
-                      "const j = pm.response.json();",
-                      "if (j.data && j.data._id) { pm.collectionVariables.set('instantBookingId', j.data._id); }",
-                      "pm.test('Created or clear error', function () { pm.expect([200, 400, 402, 403, 409]).to.include(pm.response.code); });"
-                    ]
+                      "if (pm.response.code === 200) {",
+                      "  var jsonData = pm.response.json();",
+                      "  pm.collectionVariables.set(\"instantBookingId\", jsonData.data.bookingId);",
+                      "  pm.collectionVariables.set(\"instantOfferId\", jsonData.data.offerId);",
+                      "  pm.collectionVariables.set(\"instantExpiresAt\", jsonData.data.expiresAt);",
+                      "}",
+                      "pm.test(\"Booking created with status requested\", function () {",
+                      "  pm.expect(pm.response.code).to.equal(200);",
+                      "  var jsonData = pm.response.json();",
+                      "  pm.expect(jsonData.data.status).to.equal(\"requested\");",
+                      "  pm.expect(jsonData.data.offerId).to.exist;",
+                      "  pm.expect(jsonData.data.expiresAt).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
                   }
                 }
               ],
               "request": {
                 "method": "POST",
-                "header": [],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"targetId\": \"{{instantServiceId}}\",\n  \"lat\": {{instantLat}},\n  \"lng\": {{instantLng}},\n  \"stripePaymentMethodId\": \"{{instantPaymentMethodId}}\",\n  \"matchSimilar\": true,\n  \"agreedNonRefundable\": true,\n  \"agreementVersion\": \"instant-v1\"\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "raw": "{\n  \"scope\": \"service\",\n  \"targetId\": \"{{instantServiceId}}\",\n  \"date\": \"2026-11-15T10:00:00Z\",\n  \"slot\": {\n    \"open\": \"10:00\",\n    \"close\": \"11:00\"\n  },\n  \"providerId\": \"{{instantProviderId}}\",\n  \"stripePaymentMethodId\": \"{{instantPaymentMethodId}}\",\n  \"lat\": 40.7128,\n  \"lng\": -74.006,\n  \"agreedNonRefundable\": true,\n  \"agreementVersion\": \"instant-v1\"\n}"
                 },
-                "url": { "raw": "{{url}}app/instant/bookings", "host": ["{{url}}app"], "path": ["instant", "bookings"] }
+                "url": {
+                  "raw": "{{url}}app/instant/bookings",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               },
               "response": []
             },
             {
-              "name": "Get booking",
+              "name": "4. Get Eligible Next Providers",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Next providers returned with deadline\", function () {",
+                      "  pm.expect(pm.response.code).to.equal(200);",
+                      "  var jsonData = pm.response.json();",
+                      "  pm.expect(jsonData.data.providers).to.be.an('array');",
+                      "  pm.expect(jsonData.data.deadline).to.exist;",
+                      "  if (jsonData.data.providers.length > 0) {",
+                      "    pm.collectionVariables.set(\"instantNextProviderId\", jsonData.data.providers[0].businessId);",
+                      "    pm.collectionVariables.set(\"instantNextTargetId\", jsonData.data.providers[0].targetId);",
+                      "    pm.collectionVariables.set(\"instantNextScope\", jsonData.data.providers[0].scope);",
+                      "  }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "request": {
                 "method": "GET",
                 "header": [],
-                "url": { "raw": "{{url}}app/instant/bookings/{{instantBookingId}}", "host": ["{{url}}app"], "path": ["instant", "bookings", "{{instantBookingId}}"] }
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/next-providers",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "next-providers"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               },
               "response": []
             },
             {
-              "name": "Cancel booking (before accept releases hold / after accept captures deposit + fee)",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Changed my mind\"\n}", "options": { "raw": { "language": "json" } } },
-                "url": { "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/cancel", "host": ["{{url}}app"], "path": ["instant", "bookings", "{{instantBookingId}}", "cancel"] }
-              },
-              "response": []
-            },
-            {
-              "name": "Report provider no-show",
+              "name": "5. Customer Send Again (Same Provider)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Resend to same provider succeeds\", function () {",
+                      "  pm.expect(pm.response.code).to.equal(200);",
+                      "  var jsonData = pm.response.json();",
+                      "  pm.expect(jsonData.data.offerId).to.exist;",
+                      "  pm.expect(jsonData.data.expiresAt).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "request": {
                 "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"expectedTotalCents\": 5700,\n  \"agreedNonRefundable\": true,\n  \"agreementVersion\": \"instant-v1\"\n}"
+                },
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/send-again",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "send-again"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "6. Customer Send to Next Provider",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"providerId\": \"{{instantNextProviderId}}\",\n  \"scope\": \"{{instantNextScope}}\",\n  \"targetId\": \"{{instantNextTargetId}}\",\n  \"expectedTotalCents\": 5700,\n  \"agreedNonRefundable\": true,\n  \"agreementVersion\": \"instant-v1\"\n}"
+                },
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/send-next",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "send-next"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "7. Customer Fix Card (Payment Failed)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Payment status retrieved\", function () {",
+                      "  var code = pm.response.code;",
+                      "  pm.expect(code).to.be.oneOf([200, 202]);",
+                      "  var jsonData = pm.response.json();",
+                      "  pm.expect([\"confirmed\", \"accepted_awaiting_payment\"]).to.include(jsonData.data.status);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"stripePaymentMethodId\": \"{{instantPaymentMethodId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/fix-payment",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "fix-payment"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "10. Cancellation Quote",
+              "request": {
+                "method": "GET",
                 "header": [],
-                "url": { "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/no-show", "host": ["{{url}}app"], "path": ["instant", "bookings", "{{instantBookingId}}", "no-show"] }
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/quote/cancel",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "quote",
+                    "cancel"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Read-only quote for supported customer cancellations. Provider and confirmed-booking cancellations return 409."
+              },
+              "response": []
+            },
+            {
+              "name": "10. Cancel Booking",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"client\"\n}"
+                },
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/cancel",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "cancel"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "11. Report No-Show (Customer)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reportedBy\": \"client\"\n}"
+                },
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/no-show",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "no-show"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "13. Get Booking Details",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "14. Get User Bookings",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}app/instant/bookings?page=1&limit=10&status=confirmed",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "status",
+                      "value": "confirmed"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "15. Get Slots for Service",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/slots?scope=service&targetId={{instantServiceId}}&date=2026-11-15",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "slots"
+                  ],
+                  "query": [
+                    {
+                      "key": "scope",
+                      "value": "service"
+                    },
+                    {
+                      "key": "targetId",
+                      "value": "{{instantServiceId}}"
+                    },
+                    {
+                      "key": "date",
+                      "value": "2026-11-15"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               },
               "response": []
             }
@@ -10126,93 +10613,304 @@
         },
         {
           "name": "Provider",
-          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{businessToken}}", "type": "string" }] },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "key": "token",
+                "value": "{{businessToken}}",
+                "type": "string"
+              }
+            ]
+          },
           "item": [
             {
-              "name": "Current offer",
+              "name": "Provider - List Current Offers",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{url}}app/instant/offers?page=1&limit=10",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "offers"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "status",
+                      "value": "all",
+                      "disabled": true
+                    },
+                    {
+                      "key": "keyword",
+                      "value": "",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. Provider Accept (Test Mode)",
               "event": [
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
-                      "const j = pm.response.json();",
-                      "if (j.data && j.data.offerId) { pm.collectionVariables.set('instantOfferId', j.data.offerId); pm.collectionVariables.set('instantBookingId', j.data.bookingId); }"
-                    ]
+                      "pm.test(\"Booking accepted or awaiting payment\", function () {",
+                      "  pm.expect(pm.response.code).to.be.oneOf([200, 202]);",
+                      "  var jsonData = pm.response.json();",
+                      "  pm.expect([\"confirmed\", \"accepted_awaiting_payment\"]).to.include(jsonData.data.status);",
+                      "  if (jsonData.data.status === \"accepted_awaiting_payment\") {",
+                      "    pm.collectionVariables.set(\"instantPaymentDeadline\", jsonData.data.awaitingPaymentDeadline);",
+                      "  }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
                   }
                 }
               ],
               "request": {
-                "method": "GET",
-                "header": [],
-                "url": { "raw": "{{url}}app/instant/offers/current", "host": ["{{url}}app"], "path": ["instant", "offers", "current"] }
-              },
-              "response": []
-            },
-            {
-              "name": "Accept offer",
-              "request": {
                 "method": "PATCH",
-                "header": [],
-                "url": { "raw": "{{url}}app/instant/offers/{{instantOfferId}}/accept", "host": ["{{url}}app"], "path": ["instant", "offers", "{{instantOfferId}}", "accept"] }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{url}}app/instant/offers/{{instantOfferId}}/accept",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "offers",
+                    "{{instantOfferId}}",
+                    "accept"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{businessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               },
               "response": []
             },
             {
-              "name": "Decline offer",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "url": { "raw": "{{url}}app/instant/offers/{{instantOfferId}}/decline", "host": ["{{url}}app"], "path": ["instant", "offers", "{{instantOfferId}}", "decline"] }
-              },
-              "response": []
-            },
-            {
-              "name": "Arrived check-in",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "body": { "mode": "raw", "raw": "{\n  \"lat\": {{instantLat}},\n  \"lng\": {{instantLng}}\n}", "options": { "raw": { "language": "json" } } },
-                "url": { "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/arrived", "host": ["{{url}}app"], "path": ["instant", "bookings", "{{instantBookingId}}", "arrived"] }
-              },
-              "response": []
-            },
-            {
-              "name": "Completed check-in (captures payment + pays provider)",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "body": { "mode": "raw", "raw": "{\n  \"lat\": {{instantLat}},\n  \"lng\": {{instantLng}}\n}", "options": { "raw": { "language": "json" } } },
-                "url": { "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/complete", "host": ["{{url}}app"], "path": ["instant", "bookings", "{{instantBookingId}}", "complete"] }
-              },
-              "response": []
-            },
-            {
-              "name": "Provider cancel (penalty + automatic rematch)",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Emergency\"\n}", "options": { "raw": { "language": "json" } } },
-                "url": { "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/provider-cancel", "host": ["{{url}}app"], "path": ["instant", "bookings", "{{instantBookingId}}", "provider-cancel"] }
-              },
-              "response": []
-            },
-            {
-              "name": "Get booking",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": { "raw": "{{url}}app/instant/bookings/{{instantBookingId}}", "host": ["{{url}}app"], "path": ["instant", "bookings", "{{instantBookingId}}"] }
-              },
-              "response": []
-            },
-            {
-              "name": "Contest no-show",
+              "name": "3. Provider Decline (Optional)",
               "request": {
                 "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/decline",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "decline"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{businessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "8a. Customer Arrived Check-In",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/customer-arrived",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "customer-arrived"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{userToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "The booking customer or assigned provider may record customer arrival. Coordinates are optional."
+              },
+              "response": []
+            },
+            {
+              "name": "8b. Start Booking (Provider)",
+              "request": {
+                "method": "PATCH",
                 "header": [],
-                "body": { "mode": "raw", "raw": "{\n  \"note\": \"I arrived on time, see my Arrived check-in\"\n}", "options": { "raw": { "language": "json" } } },
-                "url": { "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/no-show/contest", "host": ["{{url}}app"], "path": ["instant", "bookings", "{{instantBookingId}}", "no-show", "contest"] }
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/start",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "start"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{businessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Start a confirmed booking manually after customer check-in."
+              },
+              "response": []
+            },
+            {
+              "name": "9. Complete Booking (Provider)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/complete",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "complete"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{businessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Assigned provider completes an ongoing booking after customer arrival. Coordinates are optional; if supplied, provide both lat and lng. Available only in non-production with a Stripe test key. Check paymentStatus for capture progress."
+              },
+              "response": []
+            },
+            {
+              "name": "12. Contest No-Show (Provider)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"note\": \"I did arrive at the specified location and waited for 15 minutes\"\n}"
+                },
+                "url": {
+                  "raw": "{{url}}app/instant/bookings/{{instantBookingId}}/no-show/contest",
+                  "host": [
+                    "{{url}}app"
+                  ],
+                  "path": [
+                    "instant",
+                    "bookings",
+                    "{{instantBookingId}}",
+                    "no-show",
+                    "contest"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{businessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               },
               "response": []
             }
@@ -10220,90 +10918,80 @@
         },
         {
           "name": "Admin",
-          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "key": "token",
+                "value": "{{adminToken}}",
+                "type": "string"
+              }
+            ]
+          },
           "item": [
             {
-              "name": "Get instant settings",
+              "name": "Get Instant Booking Settings",
               "request": {
                 "method": "GET",
                 "header": [],
-                "url": { "raw": "{{url}}admin/instant/settings", "host": ["{{url}}admin"], "path": ["instant", "settings"] }
+                "url": {
+                  "raw": "{{url}}admin/instant/settings",
+                  "host": [
+                    "{{url}}admin"
+                  ],
+                  "path": [
+                    "instant",
+                    "settings"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{adminToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               },
               "response": []
             },
             {
-              "name": "Update instant settings",
+              "name": "Update Instant Booking Settings",
               "request": {
                 "method": "PUT",
-                "header": [],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"feeFloorCents\": 700,\n  \"feeRatePercent\": 8,\n  \"feeCapCents\": 2000,\n  \"minInstantPriceCents\": 2500,\n  \"depositPercent\": 15,\n  \"instantPayoutFeePercent\": 1.5,\n  \"offerWindowSec\": 90,\n  \"maxProviders\": 3,\n  \"maxSearchSec\": 300,\n  \"radiusKm\": 25,\n  \"penaltyDeductionCents\": 700,\n  \"suspensionHours\": 24\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "raw": "{\n  \"instant\": {\n    \"providerAcceptSec\": 120,\n    \"providerAcceptSecAdvance\": 1800,\n    \"paymentSec\": 300,\n    \"customerDecisionSec\": 180,\n    \"maxAttemptMinutes\": 15,\n    \"maxAdvanceDays\": 7,\n    \"feeFloorCents\": 700,\n    \"feeRatePercent\": 8,\n    \"feeCapCents\": 2000,\n    \"minInstantPriceCents\": 2500,\n    \"depositPercent\": 15,\n    \"maxProviders\": 3,\n    \"radiusKm\": 25,\n    \"scoringWeights\": {\n      \"travelTime\": 100,\n      \"rating\": 50,\n      \"acceptanceRate\": 30,\n      \"similarity\": 20\n    },\n    \"penaltyDeductionCents\": 700,\n    \"penaltyWindowDays\": 30,\n    \"timeoutStreakLimit\": 3,\n    \"suspensionHours\": 24,\n    \"noShowReportWindowMin\": 60,\n    \"noShowContestWindowHours\": 24\n  }\n}"
                 },
-                "url": { "raw": "{{url}}admin/instant/settings", "host": ["{{url}}admin"], "path": ["instant", "settings"] }
-              },
-              "response": []
-            },
-            {
-              "name": "Resolve no-show",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "body": { "mode": "raw", "raw": "{\n  \"outcome\": \"upheld\",\n  \"note\": \"\"\n}", "options": { "raw": { "language": "json" } } },
-                "url": { "raw": "{{url}}admin/instant/bookings/{{instantBookingId}}/no-show", "host": ["{{url}}admin"], "path": ["instant", "bookings", "{{instantBookingId}}", "no-show"] }
-              },
-              "response": []
-            },
-            {
-              "name": "List disputes",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": { "raw": "{{url}}admin/instant/disputes", "host": ["{{url}}admin"], "path": ["instant", "disputes"] }
-              },
-              "response": []
-            },
-            {
-              "name": "Set dispute fault",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "body": { "mode": "raw", "raw": "{\n  \"faultParty\": \"provider\"\n}", "options": { "raw": { "language": "json" } } },
-                "url": { "raw": "{{url}}admin/instant/disputes/:id/fault", "host": ["{{url}}admin"], "path": ["instant", "disputes", ":id", "fault"], "variable": [{ "key": "id", "value": "" }] }
-              },
-              "response": []
-            },
-            {
-              "name": "List penalties",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": { "raw": "{{url}}admin/instant/penalties", "host": ["{{url}}admin"], "path": ["instant", "penalties"] }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Dev (non-prod)",
-          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{userToken}}", "type": "string" }] },
-          "item": [
-            {
-              "name": "Run offer sweeper now",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "url": { "raw": "{{url}}app/instant/test/run-sweeper", "host": ["{{url}}app"], "path": ["instant", "test", "run-sweeper"] }
-              },
-              "response": []
-            },
-            {
-              "name": "Run payments cron now (capture + payout retries)",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "url": { "raw": "{{url}}app/instant/test/run-payments-cron", "host": ["{{url}}app"], "path": ["instant", "test", "run-payments-cron"] }
+                "url": {
+                  "raw": "{{url}}admin/instant/settings",
+                  "host": [
+                    "{{url}}admin"
+                  ],
+                  "path": [
+                    "instant",
+                    "settings"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{adminToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               },
               "response": []
             }
@@ -15641,6 +16329,13 @@
     {
       "key": "badgeOptionId",
       "value": ""
-    }
+    },
+    {"key": "instantProviderId", "value": ""},
+    {"key": "instantNextProviderId", "value": ""},
+    {"key": "instantNextTargetId", "value": ""},
+    {"key": "instantNextScope", "value": ""},
+    {"key": "instantExpiresAt", "value": ""},
+    {"key": "instantPaymentDeadline", "value": ""},
+    {"key": "instantDecisionDeadline", "value": ""}
   ]
 }
